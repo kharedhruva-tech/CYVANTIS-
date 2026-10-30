@@ -27,15 +27,17 @@
 | **Interactive API Documentation** | Swagger / OpenAPI | **[https://cyvantis.onrender.com/api/v1/docs](https://cyvantis.onrender.com/api/v1/docs)** | 🟢 Operational |
 | **Live Honeypot Stream** | Secure WebSocket | `wss://cyvantis.onrender.com/api/v1/ws/events` | 🟢 Telemetry Active |
 
-### 🔑 Pre-Configured Access Credentials
+### 🔑 Access & Roles
 
-| Role | Username | Master Password | Capabilities |
-| :--- | :--- | :--- | :--- |
-| **Chief SOC Administrator** | `admin` | `Admin@Cyvantis2026!` | Full platform authority, credential decryption, user admin, rule mutation & database backups |
-| **Tier-2 SOC Analyst** | `analyst` | `Analyst@Cyvantis2026!` | Event investigation, threat intelligence queries, alert triage, incident timeline notes |
-| **Executive Viewer** | `viewer` | `Viewer@Cyvantis2026!` | Read-only telemetry monitoring, metric reports & executive dashboard exports |
+Login credentials are **not published in this repository**. Request demo access from the maintainer, or set your own accounts when self-hosting.
 
-> *Note: For heightened security, passwords on first-time login require immediate policy update, and brute-force protection locks accounts for 15 minutes after 5 failed attempts.*
+| Role | Capabilities |
+| :--- | :--- |
+| **Chief SOC Administrator** | Full platform authority, credential decryption, user admin, rule mutation & database backups |
+| **Tier-2 SOC Analyst** | Event investigation, threat intelligence queries, alert triage, incident timeline notes |
+| **Executive Viewer** | Read-only telemetry monitoring, metric reports & executive dashboard exports |
+
+> *Note: Passwords require an immediate policy update on first-time login, and brute-force protection locks accounts for 15 minutes after 5 failed attempts.*
 
 ---
 
@@ -186,8 +188,8 @@ The repository includes a production-ready **Render Blueprint** ([`render.yaml`]
   - **Environment Variables**:
     - `PYTHON_VERSION`: `3.11.9`
     - `SIMULATION_MODE`: `true`
-    - `CORS_ORIGINS`: `*`
-    - `SECRET_KEY`: `cyvantis_super_secret_jwt_key_2026_soc_enterprise_mode_secure`
+    - `CORS_ORIGINS`: your frontend URL, e.g. `https://cyvantis-frontend.onrender.com` (avoid `*` in production)
+    - `SECRET_KEY`: a long random secret, unique per deployment. Never commit it to the repository. Generate one with `python -c "import secrets; print(secrets.token_urlsafe(64))"`, or use Render's **Generate Value** option.
 - **Frontend Service (Static Site)**:
   - **Root Directory**: `frontend`
   - **Build Command**: `npm install && npm run build`
@@ -195,6 +197,16 @@ The repository includes a production-ready **Render Blueprint** ([`render.yaml`]
   - **Environment Variables**:
     - `VITE_API_URL`: `https://cyvantis.onrender.com`
   - **Rewrite Rule**: `/*` → `/index.html` (handled automatically by `frontend/public/_redirects`).
+
+---
+
+## 🔒 Security Notes
+
+- Never commit secrets, passwords, API keys, or `.env` files. Configure them through environment variables or your host's secret manager.
+- Use a unique, randomly generated `SECRET_KEY` for every deployment, and rotate it immediately if it was ever exposed.
+- Change any default or seeded account passwords before exposing an instance to the internet.
+- Restrict `CORS_ORIGINS` to your own frontend origin(s) in production.
+- Report vulnerabilities privately to the maintainer instead of opening a public issue.
 
 ---
 
