@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../../services/api';
 import React, { useState, useEffect } from 'react';
 import { 
   X, Crosshair, Network, Cloud, ShieldAlert, FileCode, Cpu, Play, 
@@ -46,13 +47,13 @@ export const CyberWarRoomModal: React.FC<CyberWarRoomModalProps> = ({
     if (!isOpen) return;
 
     // 1. Lateral Movement
-    fetch('http://localhost:8000/api/v1/offensive/lateral-movement/attack-path')
+    fetch(`${API_BASE_URL}/offensive/lateral-movement/attack-path`)
       .then(res => res.json())
       .then(d => setLateralData(d))
       .catch(err => console.warn('Lateral fallback:', err));
 
     // 2. Cloud Misconfigurations
-    fetch('http://localhost:8000/api/v1/offensive/cloud/audit', {
+    fetch(`${API_BASE_URL}/offensive/cloud/audit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ environment: "AWS-Production" })
@@ -62,7 +63,7 @@ export const CyberWarRoomModal: React.FC<CyberWarRoomModalProps> = ({
       .catch(err => console.warn('Cloud audit fallback:', err));
 
     // 3. API Fuzzer
-    fetch('http://localhost:8000/api/v1/offensive/api-fuzzer/test', {
+    fetch(`${API_BASE_URL}/offensive/api-fuzzer/test`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ endpoint: "/api/v1/users" })
@@ -72,25 +73,25 @@ export const CyberWarRoomModal: React.FC<CyberWarRoomModalProps> = ({
       .catch(err => console.warn('API Fuzz fallback:', err));
 
     // 4. Supply Chain
-    fetch('http://localhost:8000/api/v1/offensive/supply-chain/audit', { method: 'POST' })
+    fetch(`${API_BASE_URL}/offensive/supply-chain/audit`, { method: 'POST' })
       .then(res => res.json())
       .then(d => setSupplyChainData(d))
       .catch(err => console.warn('Supply Chain fallback:', err));
 
     // 5. Fuzzing Dashboard
-    fetch('http://localhost:8000/api/v1/offensive/fuzzing/campaigns')
+    fetch(`${API_BASE_URL}/offensive/fuzzing/campaigns`)
       .then(res => res.json())
       .then(d => setFuzzingData(d))
       .catch(err => console.warn('Fuzzing fallback:', err));
 
     // 6. Threat Actor
-    fetch(`http://localhost:8000/api/v1/offensive/threat-actors/${selectedActor}`)
+    fetch(`${API_BASE_URL}/offensive/threat-actors/${selectedActor}`)
       .then(res => res.json())
       .then(d => setActorData(d))
       .catch(err => console.warn('Actor fallback:', err));
 
     // 7. Red Team Report
-    fetch('http://localhost:8000/api/v1/offensive/redteam/report', {
+    fetch(`${API_BASE_URL}/offensive/redteam/report`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title: "Enterprise Cyber War Room Assessment" })
@@ -102,7 +103,7 @@ export const CyberWarRoomModal: React.FC<CyberWarRoomModalProps> = ({
   }, [isOpen, selectedActor]);
 
   const handleSimulatePlaybook = () => {
-    fetch('http://localhost:8000/api/v1/offensive/playbook/simulate', {
+    fetch(`${API_BASE_URL}/offensive/playbook/simulate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ steps: playbookSteps })

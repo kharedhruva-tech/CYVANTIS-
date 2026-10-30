@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../services/api';
 import {
   ShieldCheck, Lock, User as UserIcon, AlertCircle, ArrowRight,
   Sparkles, Cpu, Radio, KeyRound, ArrowLeft, Mail, CheckCircle2,
@@ -66,8 +67,8 @@ export const Login: React.FC<LoginProps> = ({ onBackToLanding }) => {
       formData.append('username', username);
       formData.append('password', password);
 
-      // Using /api/v1/auth/login directly via Vite proxy or relative path
-      const res = await fetch('/api/v1/auth/login', {
+      // Using configured or detected API_BASE_URL
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -117,7 +118,7 @@ export const Login: React.FC<LoginProps> = ({ onBackToLanding }) => {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/v1/auth/register', {
+      const res = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -157,7 +158,7 @@ export const Login: React.FC<LoginProps> = ({ onBackToLanding }) => {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/v1/auth/2fa/verify-login', {
+      const res = await fetch(`${API_BASE_URL}/auth/2fa/verify-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

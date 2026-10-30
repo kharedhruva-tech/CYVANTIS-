@@ -10,6 +10,7 @@ import {
   Network, Trophy, Target, ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../services/api';
 
 import { CommandPalette, CommandItem } from '../components/soc/CommandPalette';
 import { SplitViewInspector, LogEventData } from '../components/soc/SplitViewInspector';
@@ -104,7 +105,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
         formData.append('username', 'admin');
         formData.append('password', entered);
 
-        const res = await fetch('/api/auth/login', {
+        const res = await fetch(`${API_BASE_URL}/auth/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',

@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../../services/api';
 import React, { useState, useEffect } from 'react';
 import { 
   X, Trophy, ShieldCheck, Activity, TrendingUp, TrendingDown,
@@ -23,7 +24,7 @@ export const SecurityScorecardModal: React.FC<SecurityScorecardModalProps> = ({
   useEffect(() => {
     if (!isOpen) return;
     setIsLoading(true);
-    fetch('http://localhost:8000/api/v1/living/scorecard')
+    fetch(`${API_BASE_URL}/living/scorecard`)
       .then(res => res.json())
       .then(json => setData(json))
       .catch(err => {

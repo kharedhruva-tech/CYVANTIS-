@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../../services/api';
 import React, { useState, useEffect } from 'react';
 import { 
   X, Copy, Check, Shield, AlertTriangle, Globe, Terminal, FileCode, 
@@ -66,7 +67,7 @@ export const SplitViewInspector: React.FC<SplitViewInspectorProps> = ({
 
     // 1. Fetch Semantic & NLP Analysis
     setIsLoadingSemantic(true);
-    fetch('http://localhost:8000/api/v1/recon/semantic-analyze', {
+    fetch(`${API_BASE_URL}/recon/semantic-analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -107,7 +108,7 @@ export const SplitViewInspector: React.FC<SplitViewInspectorProps> = ({
 
     // 2. Fetch JA3 & DPI Fingerprint
     setIsLoadingFingerprint(true);
-    fetch(`http://localhost:8000/api/v1/recon/fingerprint/${event.ip}?protocol=${encodeURIComponent(event.protocol)}`)
+    fetch(`${API_BASE_URL}/recon/fingerprint/${event.ip}?protocol=${encodeURIComponent(event.protocol)}`)
       .then(res => res.json())
       .then(data => setFingerprintData(data))
       .catch(err => {
@@ -142,7 +143,7 @@ export const SplitViewInspector: React.FC<SplitViewInspectorProps> = ({
 
     // 3. Fetch Shodan & External Footprinting
     setIsLoadingRecon(true);
-    fetch(`http://localhost:8000/api/v1/recon/shodan/${event.ip}`)
+    fetch(`${API_BASE_URL}/recon/shodan/${event.ip}`)
       .then(res => res.json())
       .then(data => setReconData(data))
       .catch(err => {
@@ -176,7 +177,7 @@ export const SplitViewInspector: React.FC<SplitViewInspectorProps> = ({
       .finally(() => setIsLoadingRecon(false));
 
     // 4. Fetch AI Anomaly Narrative (Feature 4)
-    fetch('http://localhost:8000/api/v1/living/anomaly-narrative', {
+    fetch(`${API_BASE_URL}/living/anomaly-narrative`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -202,7 +203,7 @@ export const SplitViewInspector: React.FC<SplitViewInspectorProps> = ({
       });
 
     // 5. Fetch Ghost Mode Decoded Data (Feature 2)
-    fetch('http://localhost:8000/api/v1/living/ghost-mode/decode-dns', {
+    fetch(`${API_BASE_URL}/living/ghost-mode/decode-dns`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -221,7 +222,7 @@ export const SplitViewInspector: React.FC<SplitViewInspectorProps> = ({
       });
 
     // 6. Fetch Blame Game Matrix (Feature 5)
-    fetch('http://localhost:8000/api/v1/living/blame-game/cowrie-decoy-01')
+    fetch(`${API_BASE_URL}/living/blame-game/cowrie-decoy-01`)
       .then(res => res.json())
       .then(bData => setBlameData(bData))
       .catch(() => {
@@ -256,7 +257,7 @@ export const SplitViewInspector: React.FC<SplitViewInspectorProps> = ({
       });
 
     // 7. Fetch Collaborative Annotations (Feature 9)
-    fetch(`http://localhost:8000/api/v1/living/annotations?target_id=${event.ip}`)
+    fetch(`${API_BASE_URL}/living/annotations?target_id=${event.ip}`)
       .then(res => res.json())
       .then(annData => setAnnotations(annData.annotations || []))
       .catch(() => {
@@ -361,8 +362,8 @@ tags:
   const handleExecuteRunbook = (actionType: 'isolate' | 'rotate') => {
     setRunbookExecuting(true);
     const endpoint = actionType === 'isolate' 
-      ? 'http://localhost:8000/api/v1/living/runbook/isolate-host'
-      : 'http://localhost:8000/api/v1/living/runbook/rotate-keys';
+      ? `${API_BASE_URL}/living/runbook/isolate-host`
+      : `${API_BASE_URL}/living/runbook/rotate-keys`;
     
     const body = actionType === 'isolate'
       ? { host_id: "cowrie-decoy-01", ip: event.ip, k8s_pod: "decoy-worker-pod-89df", notify_slack: true, create_jira: true }
@@ -412,7 +413,7 @@ tags:
       tag: selectedTag
     };
 
-    fetch('http://localhost:8000/api/v1/living/annotations', {
+    fetch(`${API_BASE_URL}/living/annotations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newNoteObj)

@@ -3,13 +3,34 @@ const getHost = () => {
   return window.location.hostname === 'localhost' ? '127.0.0.1' : window.location.hostname;
 };
 
-// Check for user-configured API URL from Vite environment variable (e.g., in cloud deployments like Render or Vercel)
-const envApiUrl = import.meta.env.VITE_API_URL ? String(import.meta.env.VITE_API_URL).trim().replace(/\/+$/, '') : '';
+// Smart base URL resolver:
+// 1. Runtime override via window.__CYVANTIS_API_URL__ or localStorage
+// 2. Build-time Vite env variable (VITE_API_URL)
+// 3. Render cloud automatic fallback: if frontend is on .onrender.com, use https://cyvantis.onrender.com
+// 4. Local Vite proxy fallback: /api/v1
+export const getApiBaseUrl = (): string => {
+  if (typeof window !== 'undefined') {
+    const custom = (window as any).__CYVANTIS_API_URL__ || localStorage.getItem('CYVANTIS_API_URL');
+    if (custom) {
+      const trimmed = String(custom).trim().replace(/\/+$/, '');
+      return trimmed.endsWith('/api/v1') ? trimmed : `${trimmed}/api/v1`;
+    }
+  }
 
-// Use configured URL if provided, otherwise relative path '/api/v1' (for Vite dev proxy & Nginx reverse proxy)
-const API_BASE_URL = envApiUrl
-  ? (envApiUrl.endsWith('/api/v1') ? envApiUrl : `${envApiUrl}/api/v1`)
-  : (typeof window !== 'undefined' ? '/api/v1' : `http://${getHost()}:8000/api/v1`);
+  const envApiUrl = import.meta.env.VITE_API_URL ? String(import.meta.env.VITE_API_URL).trim().replace(/\/+$/, '') : '';
+  if (envApiUrl) {
+    return envApiUrl.endsWith('/api/v1') ? envApiUrl : `${envApiUrl}/api/v1`;
+  }
+
+  // Automatic cloud detection for Render: if frontend is on *.onrender.com, route to https://cyvantis.onrender.com
+  if (typeof window !== 'undefined' && window.location.hostname.endsWith('.onrender.com')) {
+    return 'https://cyvantis.onrender.com/api/v1';
+  }
+
+  return typeof window !== 'undefined' ? '/api/v1' : `http://${getHost()}:8000/api/v1`;
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export function getAuthToken(): string | null {
   return localStorage.getItem('cyvantis_token');
@@ -72,9 +93,9 @@ export function getWebSocketUrl(token?: string | null): string {
     const customWs = String(import.meta.env.VITE_WS_URL).trim().replace(/\/+$/, '');
     wsUrl = customWs.endsWith('/ws/events') ? customWs : `${customWs}/api/v1/ws/events`;
   }
-  // 2. Derive WebSocket URL from VITE_API_URL if configured
-  else if (envApiUrl && envApiUrl.startsWith('http')) {
-    const parsed = new URL(envApiUrl);
+  // 2. Derive WebSocket URL from API_BASE_URL if configured
+  else if (API_BASE_URL && API_BASE_URL.startsWith('http')) {
+    const parsed = new URL(API_BASE_URL);
     const wsProto = parsed.protocol === 'https:' ? 'wss:' : 'ws:';
     const basePath = parsed.pathname.replace(/\/+$/, '');
     wsUrl = `${wsProto}//${parsed.host}${basePath.endsWith('/api/v1') ? basePath : basePath + '/api/v1'}/ws/events`;

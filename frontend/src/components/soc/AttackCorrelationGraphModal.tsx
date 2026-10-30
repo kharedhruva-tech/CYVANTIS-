@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../../services/api';
 import React, { useState, useEffect } from 'react';
 import { 
   X, Share2, ZoomIn, ZoomOut, RotateCcw, Shield, Terminal, Globe, 
@@ -59,7 +60,7 @@ export const AttackCorrelationGraphModal: React.FC<AttackCorrelationGraphModalPr
           ip: event.ip,
           cmd: event.cmd,
         });
-        const res = await fetch(`http://localhost:8000/api/v1/recon/attack-graph/${event.id}?${queryParams}`);
+        const res = await fetch(`${API_BASE_URL}/recon/attack-graph/${event.id}?${queryParams}`);
         if (!res.ok) throw new Error('Failed to load attack graph');
         const data = await res.json();
         setNodes(data.nodes || []);

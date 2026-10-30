@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../../services/api';
 import React, { useState, useEffect } from 'react';
 import { 
   X, Globe, Shield, Terminal, Activity, Search, AlertTriangle, 
@@ -45,25 +46,25 @@ export const DomainIntelligenceModal: React.FC<DomainIntelligenceModalProps> = (
     setSearchedDomain(domain);
 
     // 1. Passive DNS
-    fetch(`http://localhost:8000/api/v1/domain-intel/pdns/${domain}`)
+    fetch(`${API_BASE_URL}/domain-intel/pdns/${domain}`)
       .then(res => res.json())
       .then(d => setPdnsData(d))
       .catch(err => console.warn('PDNS fallback:', err));
 
     // 2. DNSSEC & Tunneling
-    fetch(`http://localhost:8000/api/v1/domain-intel/dnssec-tunneling/${domain}`)
+    fetch(`${API_BASE_URL}/domain-intel/dnssec-tunneling/${domain}`)
       .then(res => res.json())
       .then(d => setDnssecData(d))
       .catch(err => console.warn('DNSSEC fallback:', err));
 
     // 3. CT Logs
-    fetch(`http://localhost:8000/api/v1/domain-intel/ct-logs/${domain}`)
+    fetch(`${API_BASE_URL}/domain-intel/ct-logs/${domain}`)
       .then(res => res.json())
       .then(d => setCtData(d))
       .catch(err => console.warn('CT fallback:', err));
 
     // 4. WHOIS & Typosquatting
-    fetch(`http://localhost:8000/api/v1/domain-intel/whois/${domain}`)
+    fetch(`${API_BASE_URL}/domain-intel/whois/${domain}`)
       .then(res => res.json())
       .then(d => setWhoisData(d))
       .catch(err => console.warn('WHOIS fallback:', err))
@@ -84,7 +85,7 @@ export const DomainIntelligenceModal: React.FC<DomainIntelligenceModalProps> = (
   };
 
   const handleTestDga = () => {
-    fetch('http://localhost:8000/api/v1/domain-intel/dga-detect', {
+    fetch(`${API_BASE_URL}/domain-intel/dga-detect`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ subdomain: testSubdomain })
@@ -102,7 +103,7 @@ export const DomainIntelligenceModal: React.FC<DomainIntelligenceModalProps> = (
   };
 
   const handleDecodeTunnel = () => {
-    fetch('http://localhost:8000/api/v1/domain-intel/decode-tunnel-payload', {
+    fetch(`${API_BASE_URL}/domain-intel/decode-tunnel-payload`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: tunnelQueryInput })

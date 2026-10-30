@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, ShieldAlert, KeyRound, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { apiRequest } from '../../services/api';
+import { apiRequest, API_BASE_URL } from '../../services/api';
 
 const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes of inactivity
 
@@ -47,7 +47,7 @@ export const IdleSessionLockModal: React.FC = () => {
       formData.append('username', user?.username || '');
       formData.append('password', password);
 
-      const res = await fetch('/api/v1/auth/login', {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         body: formData,
       });
