@@ -1,0 +1,46 @@
+# Render Blueprint for CYVANTIS SOC Platform
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  # -------------------------------------------------------------
+  # Backend: FastAPI SOC Threat Engine & Honeypot Ingestion
+  # -------------------------------------------------------------
+  - type: web
+    name: cyvantis-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SIMULATION_MODE
+        value: "true"
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: sqlite:///./cyvantis.db
+
+  # -------------------------------------------------------------
+  # Frontend: React + Vite + Tailwind Cyber Sentinel Dashboard
+  # -------------------------------------------------------------
+  - type: static
+    name: cyvantis-frontend
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: cyvantis-backend
+          property: host

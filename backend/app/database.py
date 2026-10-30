@@ -4,6 +4,14 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app.config import settings
 
+# Ensure parent directory exists for SQLite database files
+if settings.DATABASE_URL.startswith("sqlite"):
+    raw_path = settings.DATABASE_URL.split("sqlite:///")[-1]
+    if raw_path and raw_path != ":memory:":
+        db_dir = os.path.dirname(os.path.abspath(raw_path))
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
+
 # Create database engine for SQLite with 30s connection timeout
 connect_args = {"check_same_thread": False, "timeout": 30.0} if settings.DATABASE_URL.startswith("sqlite") else {}
 
