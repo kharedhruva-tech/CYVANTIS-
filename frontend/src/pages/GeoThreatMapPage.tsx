@@ -179,6 +179,10 @@ const RealisticLiveThreatMap: React.FC<RealisticLiveThreatMapProps> = ({
     }).addTo(map);
     tileLayerRef.current = darkTiles;
 
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 250);
+
     return () => {
       map.remove();
       mapRef.current = null;
@@ -555,9 +559,10 @@ const Spark: React.FC<{ a: number[]; b: number[] }> = ({ a, b }) => {
 
 export interface GeoThreatMapPageProps { 
   onNavigateEvents?: () => void;
+  embedded?: boolean;
 }
 
-export const GeoThreatMapPage: React.FC<GeoThreatMapPageProps> = ({ onNavigateEvents }) => {
+export const GeoThreatMapPage: React.FC<GeoThreatMapPageProps> = ({ onNavigateEvents, embedded = false }) => {
   const [filter, setFilter] = useState<'all' | CatId>('all');
   const [mapType, setMapType] = useState<'dark' | 'satellite'>('dark');
   const [isLive, setIsLive] = useState<boolean>(true);
@@ -620,27 +625,27 @@ export const GeoThreatMapPage: React.FC<GeoThreatMapPageProps> = ({ onNavigateEv
   return (
     <div 
       ref={pageRef}
-      className="min-h-screen w-full text-[#e6f1ff] p-4 space-y-3 font-sans select-none"
-      style={{ background: 'radial-gradient(1200px 600px at 50% -10%, #0a2450 0%, #030a1c 65%)' }}
+      className={`w-full text-[#e6f1ff] ${embedded ? 'p-1 sm:p-2 space-y-3' : 'min-h-screen p-4 space-y-3'} font-sans select-none`}
+      style={embedded ? { background: 'transparent' } : { background: 'radial-gradient(1200px 600px at 50% -10%, #0a2450 0%, #030a1c 65%)' }}
     >
       {/* 1. Header Bar */}
       <header className="flex flex-wrap items-center justify-between gap-3 px-2">
         <div className="flex items-center gap-3">
-          <Shield className="w-10 h-10 text-[#38BDF8] drop-shadow-[0_0_12px_#38BDF8]" />
+          <Shield className="w-9 h-9 text-[#38BDF8] drop-shadow-[0_0_12px_#38BDF8]" />
           <div>
-            <div className="flex items-baseline gap-3">
-              <span className="text-2xl font-bold tracking-[0.14em] font-mono text-white">CYVANTIS</span>
-              <span className="text-lg font-bold text-[#38BDF8]">Interactive SOC Control Center</span>
+            <div className="flex items-baseline gap-2.5 flex-wrap">
+              <span className="text-xl font-bold tracking-[0.14em] font-mono text-white">6. GEOGRAPHIC THREAT MAP</span>
+              <span className="text-xs font-bold text-[#38BDF8] tracking-wider font-mono bg-[#38BDF8]/15 px-2 py-0.5 rounded border border-[#38BDF8]/30">REALISTIC SATELLITE RADAR</span>
             </div>
-            <p className="text-xs text-[#8fc4ff] tracking-wide font-mono">
-              Real-Time Global Threat Intelligence • Satellite Reconnaissance • Autonomous Defense
+            <p className="text-xs text-[#8fc4ff] tracking-wide font-mono mt-0.5">
+              Live Great-Circle Ballistic Arcs • Satellite Reconnaissance • Autonomous Deception Stream
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-5 text-xs font-mono">
-          <span className="text-[#8fa8c8]">{new Date(clock).toUTCString().replace('GMT', 'UTC').slice(0, 25)}</span>
-          <span className="flex items-center gap-2 text-[11px] text-[#34D399] font-bold">
+        <div className="flex items-center gap-4 text-xs font-mono">
+          <span className="text-[#8fa8c8] hidden sm:inline">{new Date(clock).toUTCString().replace('GMT', 'UTC').slice(0, 25)}</span>
+          <span className="flex items-center gap-2 text-[11px] text-[#34D399] font-bold bg-[#34D399]/10 px-2.5 py-1 rounded-full border border-[#34D399]/30">
             <i className="w-2.5 h-2.5 rounded-full bg-[#34D399] animate-pulse" />
             LIVE TELEMETRY STREAM
           </span>

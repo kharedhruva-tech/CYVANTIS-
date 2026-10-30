@@ -25,6 +25,7 @@ import { SecurityScorecardModal } from '../components/soc/SecurityScorecardModal
 import { DomainIntelligenceModal } from '../components/soc/DomainIntelligenceModal';
 import { CyberWarRoomModal } from '../components/soc/CyberWarRoomModal';
 import { GeographicalOperationsMap } from '../components/common/GeographicalOperationsMap';
+import { GeoThreatMapPage } from './GeoThreatMapPage';
 import { SpaceCyberShowcase } from '../components/soc/SpaceCyberShowcase';
 import { AdvancedThreatRadarHero } from '../components/landing/AdvancedThreatRadarHero';
 import { QuickStepGuide } from '../components/landing/QuickStepGuide';
@@ -2013,9 +2014,9 @@ flags statistically significant deviations in real time using Isolation Forest.
                   ))}
                 </div>
 
-                {/* LIVE GEOGRAPHICAL GLOBAL OPERATIONS & THREAT MAP */}
-                <div className="pt-3 border-t border-slate-800/80">
-                  <GeographicalOperationsMap defaultMode="operations" />
+                {/* LIVE 6. GEOGRAPHIC THREAT MAP (REALISTIC LEAFLET + SATELLITE + BALLISTIC ARCS) */}
+                <div className="pt-3 border-t border-slate-800/80 rounded-2xl overflow-hidden border border-[#16406b]/50 shadow-2xl">
+                  <GeoThreatMapPage embedded={true} onNavigateEvents={onLoginClick} />
                 </div>
               </div>
             )}
