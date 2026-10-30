@@ -44,21 +44,26 @@ def trigger_model_training(
     return res
 
 @router.post("/predict")
-def predict_threat_severity(payload: EventPredictionRequest):
+def predict_threat_severity(
+    payload: EventPredictionRequest,
+    current_user: Optional[models.User] = Depends(security.get_current_user_optional)
+):
     """
     Predicts threat severity, class confidence probabilities, and anomaly detection score for a honeypot attack event.
     """
-    result = predict_single_event(payload.dict())
+    result = predict_single_event(payload.model_dump())
     return result
 
 @router.get("/credentials")
 def get_database_credentials(
     query: Optional[str] = None,
     limit: int = 20,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.get_current_user)
 ):
     """
     Searches cyvantis.db honeypot events for captured usernames & passwords from attacker authentication attempts.
+    Protected by role-based access control: passwords are redacted unless caller possesses admin privileges.
     """
     q = db.query(models.HoneypotEvent).filter(
         (models.HoneypotEvent.username != None) | (models.HoneypotEvent.password != None)
@@ -75,12 +80,14 @@ def get_database_credentials(
 
     results = q.order_by(models.HoneypotEvent.timestamp.desc()).limit(limit).all()
 
+    is_admin = current_user.role == "admin"
     creds_data = []
     for item in results:
+        pwd = item.password if is_admin else ("****** (redacted)" if item.password else "[EMPTY]")
         creds_data.append({
             "id": item.id,
             "username": item.username or "[EMPTY]",
-            "password": item.password or "[EMPTY]",
+            "password": pwd,
             "protocol": item.protocol or "SSH",
             "src_ip": item.src_ip or "127.0.0.1",
             "severity": item.severity or "medium",

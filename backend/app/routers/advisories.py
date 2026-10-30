@@ -142,6 +142,27 @@ def get_cve_radar_feed(
             query_str in c["vendor"].lower() or
             query_str in c["summary"].lower()
         ]
+        # If looking up a specific CVE not in default catalog, dynamically enrich from NVD API
+        if query_str.startswith("cve-") and not filtered:
+            from app.services.threat_intelligence import threat_intel_service
+            enriched = threat_intel_service.enrich_cve(q.strip().upper())
+            if enriched:
+                cvss_val = enriched.get("cvss_score", 7.5)
+                sev_str = "CRITICAL" if cvss_val >= 9.0 else ("HIGH" if cvss_val >= 7.0 else "MEDIUM")
+                dyn_item = {
+                    "cve_id": q.strip().upper(),
+                    "title": enriched.get("category", f"Vulnerability {q.strip().upper()}"),
+                    "vendor": "NVD Catalog",
+                    "cvss_score": cvss_val,
+                    "severity": sev_str,
+                    "epss_score": 0.45,
+                    "cisa_kev": False,
+                    "published_date": datetime.datetime.utcnow().strftime("%Y-%m-%d"),
+                    "summary": enriched.get("description", "Vulnerability enriched from official NVD API 2.0."),
+                    "mitigation": "Apply vendor security patch or update target package version.",
+                    "references": [f"https://nvd.nist.gov/vuln/detail/{q.strip().upper()}"]
+                }
+                filtered.append(dyn_item)
 
     # Calculate metrics
     total_count = len(CVE_RADAR_DATASET)

@@ -1,5 +1,6 @@
 import os
-from pydantic_settings import BaseSettings
+from typing import List
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "CYVANTIS - Enterprise Gateway Intelligence & Security Nexus"
@@ -10,24 +11,39 @@ class Settings(BaseSettings):
     SECRET_KEY: str = os.getenv("SECRET_KEY", "cyvantis_super_secret_jwt_key_2026_soc_enterprise_mode_secure")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 # 24 hours
+    MAX_FAILED_LOGIN_ATTEMPTS: int = 5
+    ACCOUNT_LOCKOUT_MINUTES: int = 15
+    CREDENTIAL_REDACTION_ENABLED: bool = True
+
+    # CORS
+    CORS_ORIGINS: str = os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000,http://localhost,http://127.0.0.1"
+    )
     
     # Database - SQLite Primary Storage (NO PostgreSQL)
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./cyvantis.db")
     
-    # Cowrie Honeypot Integration
+    # Cowrie Honeypot Integration & Real Log Ingestion
     COWRIE_LOG_PATH: str = os.getenv("COWRIE_LOG_PATH", "./data/cowrie.json")
-    SIMULATION_MODE: bool = True # Enable realistic background event generator when log file is absent or for demo
-    SIMULATION_INTERVAL_SECONDS: float = 3.0
+    SIMULATION_MODE: bool = os.getenv("SIMULATION_MODE", "true").lower() in ("true", "1", "yes")
+    SIMULATION_INTERVAL_SECONDS: float = float(os.getenv("SIMULATION_INTERVAL_SECONDS", "3.0"))
     
     # Threat Intelligence Integration
     VIRUSTOTAL_API_KEY: str = os.getenv("VIRUSTOTAL_API_KEY", "")
     ABUSEIPDB_API_KEY: str = os.getenv("ABUSEIPDB_API_KEY", "")
+    NVD_API_KEY: str = os.getenv("NVD_API_KEY", "")
+    NVD_API_URL: str = os.getenv("NVD_API_URL", "https://services.nvd.nist.gov/rest/json/cves/2.0")
     
     # Storage & Backups
     BACKUP_DIR: str = os.getenv("BACKUP_DIR", "./backups")
-    RETENTION_DAYS: int = 90
+    RETENTION_DAYS: int = int(os.getenv("RETENTION_DAYS", "90"))
 
-    class Config:
-        case_sensitive = True
+    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env", extra="allow")
+
+    def get_cors_origins(self) -> List[str]:
+        if not self.CORS_ORIGINS:
+            return ["*"]
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
 
 settings = Settings()

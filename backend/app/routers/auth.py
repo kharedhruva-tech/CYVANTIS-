@@ -29,9 +29,27 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     if not user.is_active:
         raise HTTPException(status_code=400, detail="User account is disabled")
 
-    # Password Verification (15-minute lockout removed)
+    # 1. Enforce Account Lockout Policy
+    now = datetime.datetime.utcnow()
+    if user.locked_until and user.locked_until > now:
+        remaining_secs = int((user.locked_until - now).total_seconds())
+        remaining_mins = max(1, (remaining_secs + 59) // 60)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Account is temporarily locked due to excessive failed attempts. Try again in {remaining_mins} minute(s)."
+        )
+
+    # 2. Password Verification
     if not verify_password(form_data.password, user.hashed_password):
         user.failed_login_attempts += 1
+        from app.config import settings
+        if user.failed_login_attempts >= settings.MAX_FAILED_LOGIN_ATTEMPTS:
+            user.locked_until = now + datetime.timedelta(minutes=settings.ACCOUNT_LOCKOUT_MINUTES)
+            db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Account locked for {settings.ACCOUNT_LOCKOUT_MINUTES} minutes due to excessive failed login attempts."
+            )
         db.commit()
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -116,11 +134,11 @@ def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
             detail="Email address is already registered. Please sign in or use another email."
         )
 
-    # 3. Validate password length
-    if len(user_in.password) < 6:
+    # 3. Validate password strength
+    if len(user_in.password) < 8:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password must be at least 6 characters long."
+            detail="Password must be at least 8 characters long for enterprise security policy compliance."
         )
 
     # 4. Create new user with analyst role

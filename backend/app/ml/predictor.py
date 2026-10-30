@@ -28,13 +28,13 @@ def load_ml_models():
 FEATURE_COLUMNS = [
     "duration", "dst_port", "protocol_ssh", "protocol_telnet",
     "cmd_len", "user_len", "pass_len", "is_root_user",
-    "has_wget_curl", "has_execution", "has_recon", "has_base64",
-    "event_login_success", "event_login_failed", "event_cmd_input"
+    "has_wget_curl", "has_execution", "has_recon", "has_base64"
 ]
 
 def predict_single_event(event_payload: dict):
     """
-    Predicts threat severity, class probabilities, and anomaly status for a raw or existing Honeypot event payload.
+    Predicts threat severity, class probabilities, anomaly status, and feature explainability
+    for a raw or existing Honeypot event payload.
     """
     load_ml_models()
 
@@ -56,11 +56,25 @@ def predict_single_event(event_payload: dict):
         "has_wget_curl": 1 if any(kw in cmd.lower() for kw in ["wget", "curl", "tftp", "ftp"]) else 0,
         "has_execution": 1 if any(kw in cmd.lower() for kw in ["chmod", ".sh", "bash", "python", "perl", "nc", "ncat"]) else 0,
         "has_recon": 1 if any(kw in cmd.lower() for kw in ["uname", "whoami", "id", "cat /etc", "lscpu", "uptime", "ps aux"]) else 0,
-        "has_base64": 1 if any(kw in cmd.lower() for kw in ["base64", "eval", "exec", "sh -c"]) else 0,
-        "event_login_success": 1 if "success" in event_id.lower() else 0,
-        "event_login_failed": 1 if "failed" in event_id.lower() else 0,
-        "event_cmd_input": 1 if "command" in event_id.lower() else 0
+        "has_base64": 1 if any(kw in cmd.lower() for kw in ["base64", "eval", "exec", "sh -c"]) else 0
     }
+
+    # Dynamic explainability feature reasons
+    feature_explanations = []
+    if row["has_wget_curl"]:
+        feature_explanations.append("Downloader utility pattern detected (wget/curl/tftp)")
+    if row["has_execution"]:
+        feature_explanations.append("Script execution vector observed (chmod/bash/python)")
+    if row["has_base64"]:
+        feature_explanations.append("Obfuscated or encoded payload token detected")
+    if row["has_recon"]:
+        feature_explanations.append("System reconnaissance command identified")
+    if row["is_root_user"]:
+        feature_explanations.append("Targeted privileged root/admin account")
+    if "failed" in event_id.lower():
+        feature_explanations.append("Authentication failure signal")
+    if "success" in event_id.lower():
+        feature_explanations.append("Confirmed successful authentication signal")
 
     df_sample = pd.DataFrame([row])[FEATURE_COLUMNS]
 
@@ -75,6 +89,9 @@ def predict_single_event(event_payload: dict):
         anomaly_pred = _anomaly_detector.predict(df_sample)[0] # -1 for anomaly, 1 for normal
         raw_anomaly_score = float(_anomaly_detector.score_samples(df_sample)[0])
 
+        if anomaly_pred == -1:
+            feature_explanations.append(f"Out-of-distribution anomaly detected by Isolation Forest (score: {raw_anomaly_score:.3f})")
+
         return {
             "model_status": "TRAINED",
             "predicted_severity": predicted_severity,
@@ -82,7 +99,8 @@ def predict_single_event(event_payload: dict):
             "class_probabilities": class_probs,
             "is_anomalous": bool(anomaly_pred == -1),
             "anomaly_score": round(raw_anomaly_score, 4),
-            "risk_verdict": f"ML Predicted {predicted_severity.upper()} Severity {'(ANOMALOUS)' if anomaly_pred == -1 else ''}"
+            "risk_verdict": f"ML Predicted {predicted_severity.upper()} Severity {'(ANOMALOUS)' if anomaly_pred == -1 else ''}",
+            "explanations": feature_explanations
         }
     else:
         # Heuristic Rule Fallback
@@ -91,7 +109,7 @@ def predict_single_event(event_payload: dict):
             sev = "critical"
         elif row["has_recon"] or row["is_root_user"]:
             sev = "high"
-        elif row["event_login_failed"]:
+        elif "failed" in event_id.lower():
             sev = "medium"
 
         return {
@@ -101,5 +119,6 @@ def predict_single_event(event_payload: dict):
             "class_probabilities": {sev: 0.75},
             "is_anomalous": False,
             "anomaly_score": 0.0,
-            "risk_verdict": f"Heuristic Rule Evaluated {sev.upper()} Severity"
+            "risk_verdict": f"Heuristic Rule Evaluated {sev.upper()} Severity",
+            "explanations": feature_explanations
         }

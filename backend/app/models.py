@@ -1,5 +1,5 @@
 import datetime
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Float, Text, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Float, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -42,6 +42,8 @@ class HoneypotEvent(Base):
     asn = Column(String(100), default="AS0000 Unknown")
     severity = Column(String(20), default="medium", index=True) # low, medium, high, critical
     is_simulated = Column(Boolean, default=False, nullable=False)
+    data_source = Column(String(50), default="cowrie", index=True) # cowrie, auth_log, network, synthetic
+    event_hash = Column(String(64), index=True, nullable=True) # SHA-256 idempotency fingerprint
     raw_payload = Column(Text, nullable=True)
 
 class Investigation(Base):
@@ -52,6 +54,8 @@ class Investigation(Base):
     description = Column(Text, nullable=True)
     severity = Column(String(20), default="high", index=True) # low, medium, high, critical
     status = Column(String(20), default="open", index=True) # open, in_progress, resolved, closed
+    risk_score = Column(Float, default=50.0)
+    asset_tier = Column(String(50), default="Critical Gateway")
     assigned_to_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
@@ -61,6 +65,7 @@ class Investigation(Base):
     assigned_to = relationship("User", foreign_keys=[assigned_to_id])
     created_by = relationship("User", foreign_keys=[created_by_id])
     notes = relationship("InvestigationNote", back_populates="investigation", cascade="all, delete-orphan")
+    alerts = relationship("Alert", back_populates="incident")
 
 class InvestigationNote(Base):
     __tablename__ = "investigation_notes"
@@ -85,11 +90,24 @@ class Alert(Base):
     rule_name = Column(String(100), nullable=False)
     src_ip = Column(String(45), index=True, nullable=True)
     status = Column(String(20), default="active", index=True) # active, acknowledged, resolved
+    risk_score = Column(Float, default=50.0)
+    risk_factors = Column(Text, nullable=True) # JSON string of contributing score factors
+    incident_id = Column(Integer, ForeignKey("investigations.id"), nullable=True, index=True)
+    mitre_tactics = Column(String(100), nullable=True)
+    mitre_techniques = Column(String(100), nullable=True)
+    recommended_actions = Column(Text, nullable=True) # JSON array of advisory recommendations
+    evidence = Column(Text, nullable=True) # JSON event provenance IDs and evidence signals
     is_acknowledged = Column(Boolean, default=False)
     acknowledged_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     acknowledged_at = Column(DateTime, nullable=True)
+    feedback_label = Column(String(30), nullable=True) # true_positive, false_positive, needs_review
+    feedback_justification = Column(Text, nullable=True)
+    feedback_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    feedback_at = Column(DateTime, nullable=True)
 
-    acknowledged_by = relationship("User")
+    acknowledged_by = relationship("User", foreign_keys=[acknowledged_by_id])
+    feedback_by = relationship("User", foreign_keys=[feedback_by_id])
+    incident = relationship("Investigation", back_populates="alerts")
 
 class DetectionRule(Base):
     __tablename__ = "detection_rules"
@@ -97,7 +115,7 @@ class DetectionRule(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), unique=True, nullable=False)
     description = Column(Text, nullable=True)
-    rule_type = Column(String(50), nullable=False) # brute_force, command_execution, payload_download, repeated_ip
+    rule_type = Column(String(50), nullable=False) # brute_force, command_execution, payload_download, repeated_ip, anomaly, privileged_activity
     condition = Column(Text, nullable=False) # JSON or expression
     threshold = Column(Integer, default=5)
     severity = Column(String(20), default="high")
@@ -114,6 +132,9 @@ class ThreatIntelIOC(Base):
     threat_score = Column(Integer, default=50) # 0-100
     category = Column(String(50), default="Malicious Host")
     description = Column(Text, nullable=True)
+    confidence = Column(Float, default=1.0) # 0.0 - 1.0 confidence score
+    raw_intel = Column(Text, nullable=True) # JSON payload from external feed
+    expiration = Column(DateTime, nullable=True) # TTL cache expiration
     first_seen = Column(DateTime, default=datetime.datetime.utcnow)
     last_seen = Column(DateTime, default=datetime.datetime.utcnow)
     source = Column(String(100), default="CYVANTIS Honeypot")

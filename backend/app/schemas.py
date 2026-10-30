@@ -1,6 +1,7 @@
 import datetime
+import ipaddress
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 # Auth & User Schemas
 class Token(BaseModel):
@@ -100,10 +101,73 @@ class EventResponse(BaseModel):
     asn: str
     severity: str
     is_simulated: bool
+    data_source: Optional[str] = "cowrie"
+    event_hash: Optional[str] = None
     raw_payload: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+class EventIngestRequest(BaseModel):
+    eventid: str
+    src_ip: str
+    dst_port: int = Field(22, ge=1, le=65535)
+    protocol: str = "SSH"
+    timestamp: Optional[datetime.datetime] = None
+    username: Optional[str] = None
+    password: Optional[str] = None
+    command: Optional[str] = None
+    file_hash: Optional[str] = None
+    session_id: Optional[str] = None
+    duration: float = 0.0
+    country: Optional[str] = "Unknown"
+    country_code: Optional[str] = "XX"
+    city: Optional[str] = "Unknown"
+    asn: Optional[str] = "AS0000 Unknown"
+    severity: str = "low"
+    data_source: Optional[str] = "api_ingest"
+    raw_payload: Optional[str] = None
+
+    @field_validator("src_ip")
+    @classmethod
+    def validate_src_ip(cls, v: str) -> str:
+        trimmed = (v or "").strip()
+        try:
+            ipaddress.ip_address(trimmed)
+            return trimmed
+        except ValueError:
+            raise ValueError(f"Invalid IP address format: '{trimmed}'")
+
+    @field_validator("severity")
+    @classmethod
+    def validate_severity(cls, v: str) -> str:
+        valid_severities = {"low", "medium", "high", "critical"}
+        if (v or "").lower() not in valid_severities:
+            raise ValueError(f"Severity must be one of {valid_severities}, got '{v}'")
+        return v.lower()
+
+class EventIngestResponse(BaseModel):
+    success: bool
+    status: str # "persisted", "duplicate", "rejected"
+    event_id: Optional[int] = None
+    event_hash: str
+    evaluated_severity: str
+    findings_count: int = 0
+    incident_id: Optional[int] = None
+    risk_score: Optional[float] = None
+    is_anomalous: bool = False
+    message: str
+
+class BatchImportRequest(BaseModel):
+    events: List[EventIngestRequest]
+
+class BatchImportResponse(BaseModel):
+    total_received: int
+    persisted: int
+    duplicates: int
+    errors: int
+    alerts_generated: int
+    events: List[EventIngestResponse]
 
 class EventPaginatedResponse(BaseModel):
     total: int
@@ -149,6 +213,8 @@ class InvestigationResponse(BaseModel):
     description: Optional[str] = None
     severity: str
     status: str
+    risk_score: Optional[float] = 50.0
+    asset_tier: Optional[str] = "Critical Gateway"
     assigned_to_id: Optional[int] = None
     assigned_to_username: Optional[str] = None
     created_by_id: Optional[int] = None
@@ -160,6 +226,21 @@ class InvestigationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ContainmentActionRequest(BaseModel):
+    action: str  # BLOCK_IP, ISOLATE_ASSET, CLOSE_INCIDENT, REVOKE_SESSION
+    confirmed: bool = False
+    target: Optional[str] = None
+    reason: Optional[str] = "Manual incident response containment"
+
+class ContainmentActionResponse(BaseModel):
+    success: bool
+    action: str
+    target: Optional[str] = None
+    timestamp: datetime.datetime
+    audit_id: int
+    note_id: int
+    message: str
 
 # Alert Schemas
 class AlertUpdate(BaseModel):
@@ -175,12 +256,44 @@ class AlertResponse(BaseModel):
     rule_name: str
     src_ip: Optional[str] = None
     status: str
+    risk_score: Optional[float] = 50.0
+    risk_factors: Optional[str] = None
+    incident_id: Optional[int] = None
+    mitre_tactics: Optional[str] = None
+    mitre_techniques: Optional[str] = None
+    recommended_actions: Optional[str] = None
+    evidence: Optional[str] = None
     is_acknowledged: bool
     acknowledged_by_id: Optional[int] = None
     acknowledged_at: Optional[datetime.datetime] = None
+    feedback_label: Optional[str] = None
+    feedback_justification: Optional[str] = None
+    feedback_by_id: Optional[int] = None
+    feedback_at: Optional[datetime.datetime] = None
 
     class Config:
         from_attributes = True
+
+class AlertFeedbackRequest(BaseModel):
+    feedback: str # true_positive, false_positive, needs_review
+    justification: Optional[str] = None
+
+    @field_validator("feedback")
+    @classmethod
+    def validate_feedback(cls, v: str) -> str:
+        valid = {"true_positive", "false_positive", "needs_review"}
+        if (v or "").lower() not in valid:
+            raise ValueError(f"Feedback must be one of {valid}, got '{v}'")
+        return v.lower()
+
+class AlertFeedbackResponse(BaseModel):
+    success: bool
+    alert_id: int
+    feedback_label: str
+    feedback_justification: Optional[str] = None
+    reviewer_username: str
+    timestamp: datetime.datetime
+    message: str
 
 # Detection Rule Schemas
 class DetectionRuleCreate(BaseModel):
@@ -223,6 +336,9 @@ class ThreatIntelIOCResponse(BaseModel):
     threat_score: int
     category: str
     description: Optional[str] = None
+    confidence: Optional[float] = 1.0
+    expiration: Optional[datetime.datetime] = None
+    raw_intel: Optional[str] = None
     first_seen: datetime.datetime
     last_seen: datetime.datetime
     source: str

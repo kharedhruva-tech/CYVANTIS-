@@ -1,36 +1,109 @@
 {
   "status": "TRAINED",
-  "timestamp": "2026-10-24T14:40:30.842742",
-  "total_samples": 200000,
-  "train_samples": 160000,
-  "test_samples": 40000,
+  "model_version": "v2.1.0",
+  "timestamp": "2026-10-30T02:35:48.409038",
+  "dataset_source": "CYVANTIS Live Honeypot Telemetry",
+  "total_samples": 234,
+  "train_samples": 163,
+  "val_samples": 35,
+  "test_samples": 36,
   "classes_distribution": {
-    "low": 136,
-    "high": 44,
-    "medium": 39,
-    "critical": 6
+    "low": 131,
+    "high": 55,
+    "medium": 27,
+    "critical": 21
   },
-  "accuracy": 0.924,
-  "precision": 0.921,
-  "recall": 0.925,
-  "f1_score": 0.923,
-  "anomaly_detected_count": 19555,
-  "anomaly_percentage": 9.78,
+  "accuracy": 0.6111,
+  "precision": 0.6493,
+  "recall": 0.6111,
+  "f1_score": 0.6137,
+  "confusion_matrix": {
+    "labels": [
+      "critical",
+      "high",
+      "low",
+      "medium"
+    ],
+    "matrix": [
+      [
+        3,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        4,
+        5,
+        0
+      ],
+      [
+        5,
+        4,
+        11,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        4
+      ]
+    ]
+  },
+  "classification_report": {
+    "critical": {
+      "precision": 0.375,
+      "recall": 1.0,
+      "f1-score": 0.5454545454545454,
+      "support": 3.0
+    },
+    "high": {
+      "precision": 0.5,
+      "recall": 0.4444444444444444,
+      "f1-score": 0.47058823529411764,
+      "support": 9.0
+    },
+    "low": {
+      "precision": 0.6875,
+      "recall": 0.55,
+      "f1-score": 0.6111111111111112,
+      "support": 20.0
+    },
+    "medium": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 4.0
+    },
+    "accuracy": 0.6111111111111112,
+    "macro avg": {
+      "precision": 0.640625,
+      "recall": 0.7486111111111111,
+      "f1-score": 0.6567884729649436,
+      "support": 36.0
+    },
+    "weighted avg": {
+      "precision": 0.6493055555555556,
+      "recall": 0.6111111111111112,
+      "f1-score": 0.6137188882286922,
+      "support": 36.0
+    }
+  },
+  "anomaly_detected_count": 3,
+  "anomaly_percentage": 8.33,
   "feature_importances": {
-    "event_login_failed": 0.3794,
-    "event_login_success": 0.1909,
-    "cmd_len": 0.1626,
-    "event_cmd_input": 0.1082,
-    "pass_len": 0.0895,
-    "has_execution": 0.0358,
-    "has_wget_curl": 0.0171,
-    "duration": 0.0095,
-    "user_len": 0.0047,
-    "has_recon": 0.0008,
-    "is_root_user": 0.0006,
-    "protocol_ssh": 0.0004,
-    "dst_port": 0.0003,
-    "protocol_telnet": 0.0001,
+    "pass_len": 0.3125,
+    "cmd_len": 0.227,
+    "duration": 0.1633,
+    "user_len": 0.1069,
+    "has_recon": 0.089,
+    "is_root_user": 0.0228,
+    "has_wget_curl": 0.0208,
+    "has_execution": 0.02,
+    "protocol_ssh": 0.0149,
+    "dst_port": 0.0123,
+    "protocol_telnet": 0.0106,
     "has_base64": 0.0
   },
   "saved_artifacts": {

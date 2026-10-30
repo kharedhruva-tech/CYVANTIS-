@@ -64,6 +64,26 @@ def get_current_user(
         raise HTTPException(status_code=400, detail="Inactive user account")
     return user
 
+def get_current_user_optional(
+    db: Session = Depends(get_db),
+    token: Optional[str] = Depends(oauth2_scheme),
+    token_query: Optional[str] = Query(None, alias="token")
+) -> Optional[models.User]:
+    auth_token = token or token_query
+    if not auth_token:
+        return None
+    try:
+        payload = jwt.decode(auth_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        username = payload.get("sub")
+        if not username:
+            return None
+        user = db.query(models.User).filter(models.User.username == username).first()
+        if user and user.is_active:
+            return user
+    except Exception:
+        pass
+    return None
+
 def require_roles(allowed_roles: List[str]):
     def role_checker(current_user: models.User = Depends(get_current_user)):
         if current_user.role not in allowed_roles:
