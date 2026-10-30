@@ -7,8 +7,8 @@ class ConnectionManager:
         # Maps WebSocket connection to user metadata dict {"role": str, "username": str}
         self.active_connections: Dict[WebSocket, Dict[str, Any]] = {}
 
-    async def connect(self, websocket: WebSocket, user_meta: Optional[Dict[str, Any]] = None):
-        await websocket.accept()
+    async def connect(self, websocket: WebSocket, user_meta: Optional[Dict[str, Any]] = None, subprotocol: Optional[str] = None):
+        await websocket.accept(subprotocol=subprotocol)
         self.active_connections[websocket] = user_meta or {"role": "viewer", "username": "anonymous"}
 
     def disconnect(self, websocket: WebSocket):

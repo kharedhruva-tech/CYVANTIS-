@@ -33,11 +33,9 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const connectWs = () => {
       if (isDisposed) return;
       try {
-        const wsUrl = getWebSocketUrl();
         const token = localStorage.getItem('cyvantis_token');
-        socket = token 
-          ? new WebSocket(wsUrl, ['cyvantis.bearer', token])
-          : new WebSocket(wsUrl);
+        const wsUrl = getWebSocketUrl(token);
+        socket = new WebSocket(wsUrl);
         wsRef.current = socket;
 
         socket.onopen = () => {

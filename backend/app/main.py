@@ -175,10 +175,23 @@ async def websocket_events_endpoint(
     token: Optional[str] = Query(None)
 ):
     auth_token = token
+    subprotocol_to_accept = None
     if not auth_token:
         auth_header = websocket.headers.get("authorization")
         if auth_header and auth_header.startswith("Bearer "):
             auth_token = auth_header.split(" ")[1]
+
+    # Inspect Sec-WebSocket-Protocol for browser client subprotocol negotiations
+    req_subprotocols = websocket.headers.get("sec-websocket-protocol", "")
+    if req_subprotocols:
+        protocols = [p.strip() for p in req_subprotocols.split(",") if p.strip()]
+        if "cyvantis.bearer" in protocols:
+            subprotocol_to_accept = "cyvantis.bearer"
+        if not auth_token:
+            for p in protocols:
+                if p != "cyvantis.bearer":
+                    auth_token = p
+                    break
 
     if not auth_token:
         # Reject unauthorized WebSocket client per Section 11 security hardening
@@ -197,7 +210,7 @@ async def websocket_events_endpoint(
         return
 
     user_meta = {"username": username, "role": role}
-    await manager.connect(websocket, user_meta=user_meta)
+    await manager.connect(websocket, user_meta=user_meta, subprotocol=subprotocol_to_accept)
     client_ip = websocket.client.host if websocket.client else "unknown"
     now_str = datetime.now().strftime("%H:%M:%S")
     print(f"[*] [{now_str}] [WS CONNECTED] Authenticated client '{username}' ({role}) from {client_ip}", flush=True)
