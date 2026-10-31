@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldAlert, Lock, CheckCircle2, AlertTriangle, KeyRound } from 'lucide-react';
+import { ShieldAlert, Lock, CheckCircle2, AlertTriangle, KeyRound, X } from 'lucide-react';
 import { apiRequest } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { User } from '../../types';
@@ -12,6 +12,12 @@ export const FirstLoginPasswordModal: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  const handleDismiss = () => {
+    if (user) {
+      updateUser({ ...user, must_change_password: false });
+    }
+  };
 
   // Security password rules verification
   const isMinLength = newPassword.length >= 8;
@@ -62,6 +68,16 @@ export const FirstLoginPasswordModal: React.FC = () => {
   return (
     <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
       <div className="bg-[#0A1128] border border-cyan-500/40 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-[0_0_50px_rgba(6,182,212,0.15)] relative overflow-hidden">
+        {/* Close / Dismiss Button */}
+        <button
+          type="button"
+          onClick={handleDismiss}
+          className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition z-20 cursor-pointer"
+          title="Dismiss"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         {/* Glow Header Accent */}
         <div className="absolute -top-24 -left-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -175,24 +191,33 @@ export const FirstLoginPasswordModal: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-2 flex gap-3">
+              <div className="pt-2 flex flex-col gap-2">
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="w-1/3 py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition text-center cursor-pointer"
+                  >
+                    Sign Out
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading || !isPasswordValid || !isMatching}
+                    className="w-2/3 py-2.5 px-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-50 text-white text-xs font-bold rounded-lg transition shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    {loading ? (
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      'Update & Unlock Platform'
+                    )}
+                  </button>
+                </div>
                 <button
                   type="button"
-                  onClick={logout}
-                  className="w-1/3 py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition text-center"
+                  onClick={handleDismiss}
+                  className="w-full py-1 text-slate-400 hover:text-cyan-400 text-xs font-mono transition text-center underline cursor-pointer"
                 >
-                  Sign Out
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading || !isPasswordValid || !isMatching}
-                  className="w-2/3 py-2.5 px-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-50 text-white text-xs font-bold rounded-lg transition shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    'Update & Unlock Platform'
-                  )}
+                  Skip for now (Dismiss)
                 </button>
               </div>
             </form>

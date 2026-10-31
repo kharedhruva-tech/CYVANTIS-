@@ -99,6 +99,9 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     user.failed_login_attempts = 0
     user.locked_until = None
     user.last_login = datetime.datetime.utcnow()
+    # Ensure admin never gets prompted for mandatory password change
+    if user.role == "admin":
+        user.must_change_password = False
     
     audit = AuditLog(
         timestamp=datetime.datetime.utcnow(),
@@ -301,6 +304,8 @@ def disable_2fa(current_user: User = Depends(get_current_user), db: Session = De
 
 @router.get("/me", response_model=UserResponse)
 def read_users_me(current_user: User = Depends(get_current_user)):
+    if current_user.role == "admin":
+        current_user.must_change_password = False
     return current_user
 
 @router.post("/change-password-first-login", response_model=UserResponse)

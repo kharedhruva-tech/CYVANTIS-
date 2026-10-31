@@ -53,7 +53,7 @@ def seed_database(db: Session):
             full_name="SOC Chief Administrator",
             role="admin",
             is_active=True,
-            must_change_password=True,
+            must_change_password=False,
             created_at=datetime.datetime.utcnow() - datetime.timedelta(days=30)
         )
         analyst = User(
@@ -63,7 +63,7 @@ def seed_database(db: Session):
             full_name="Lead Cyber Threat Analyst",
             role="analyst",
             is_active=True,
-            must_change_password=True,
+            must_change_password=False,
             created_at=datetime.datetime.utcnow() - datetime.timedelta(days=20)
         )
         viewer = User(
@@ -73,7 +73,7 @@ def seed_database(db: Session):
             full_name="Audit Observer",
             role="viewer",
             is_active=True,
-            must_change_password=True,
+            must_change_password=False,
             created_at=datetime.datetime.utcnow() - datetime.timedelta(days=10)
         )
         db.add_all([admin, analyst, viewer])

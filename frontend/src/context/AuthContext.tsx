@@ -27,6 +27,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (storedToken) {
         try {
           const userData = await apiRequest<User>('/auth/me');
+          if (userData && (userData.role === 'admin' || userData.username === 'admin')) {
+            userData.must_change_password = false;
+          }
           setUser(userData);
           setTokenState(storedToken);
         } catch (err) {
@@ -42,6 +45,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = (newToken: string, newUser: User) => {
+    if (newUser && (newUser.role === 'admin' || newUser.username === 'admin')) {
+      newUser.must_change_password = false;
+    }
     setAuthToken(newToken);
     setTokenState(newToken);
     setUser(newUser);

@@ -54,7 +54,7 @@ class UserResponse(BaseModel):
     full_name: Optional[str] = None
     role: str
     is_active: bool
-    must_change_password: bool = True
+    must_change_password: bool = False
     is_totp_enabled: bool = False
     created_at: datetime.datetime
     last_login: Optional[datetime.datetime] = None

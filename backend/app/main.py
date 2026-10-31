@@ -9,6 +9,7 @@ from jose import jwt, JWTError
 
 from app.config import settings
 from app.database import engine, Base, SessionLocal
+from app.models import User
 from app.utils.seed_data import seed_database
 from app.cowrie_watcher import start_cowrie_monitoring
 from app.websocket import manager
@@ -56,10 +57,14 @@ with engine.connect() as conn:
         except Exception:
             pass
 
-# Seed database on boot
+# Seed database on boot and ensure default accounts bypass forced password reset
 db = SessionLocal()
 try:
     seed_database(db)
+    db.query(User).filter(User.username.in_(['admin', 'analyst', 'viewer'])).update(
+        {'must_change_password': False}, synchronize_session=False
+    )
+    db.commit()
 finally:
     db.close()
 

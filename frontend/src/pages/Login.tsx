@@ -90,6 +90,9 @@ export const Login: React.FC<LoginProps> = ({ onBackToLanding }) => {
         return;
       }
 
+      if (data.user && (data.user.role === 'admin' || data.user.username === 'admin')) {
+        data.user.must_change_password = false;
+      }
       login(data.access_token, data.user);
       window.location.href = '/';
     } catch (err: any) {
@@ -174,6 +177,9 @@ export const Login: React.FC<LoginProps> = ({ onBackToLanding }) => {
         throw new Error(data.detail || 'Invalid 2FA verification code');
       }
 
+      if (data.user && (data.user.role === 'admin' || data.user.username === 'admin')) {
+        data.user.must_change_password = false;
+      }
       login(data.access_token, data.user);
       window.location.href = '/';
     } catch (err: any) {

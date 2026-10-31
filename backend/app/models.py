@@ -13,7 +13,7 @@ class User(Base):
     full_name = Column(String(100), nullable=True)
     role = Column(String(20), default="analyst", nullable=False) # admin, analyst, viewer
     is_active = Column(Boolean, default=True, nullable=False)
-    must_change_password = Column(Boolean, default=True, nullable=False)
+    must_change_password = Column(Boolean, default=False, nullable=False)
     failed_login_attempts = Column(Integer, default=0, nullable=False)
     locked_until = Column(DateTime, nullable=True)
     totp_secret = Column(String(64), nullable=True)

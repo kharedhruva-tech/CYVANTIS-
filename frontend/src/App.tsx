@@ -180,7 +180,7 @@ const MainLayout: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-[#080E1E] text-[#E8EEF8] font-sans relative overflow-hidden bg-grid-obsidian">
       <IdleSessionLockModal />
-      {user?.must_change_password && <FirstLoginPasswordModal />}
+      {user?.must_change_password && user?.role !== 'admin' && <FirstLoginPasswordModal />}
 
       <Sidebar
         currentTab={currentTab}
