@@ -23,6 +23,32 @@ os.makedirs(settings.RECEIPTS_DIR, exist_ok=True)
 # Public & User Membership Endpoints
 # ==============================================================================
 
+def format_plan_response(p: models.MembershipPlan) -> schemas.MembershipPlanResponse:
+    feats = []
+    if p.features:
+        if isinstance(p.features, list):
+            feats = p.features
+        elif isinstance(p.features, str):
+            try:
+                feats = json.loads(p.features)
+            except Exception:
+                feats = [p.features]
+    return schemas.MembershipPlanResponse(
+        id=p.id,
+        code=p.code,
+        name=p.name,
+        description=getattr(p, 'description', None) or "",
+        price_inr=float(p.price_inr),
+        duration_days=p.duration_days,
+        features=feats,
+        tier=p.tier,
+        badge=p.badge,
+        daily_scan_limit=p.daily_scan_limit,
+        is_active=p.is_active,
+        sort_order=p.sort_order,
+        created_at=p.created_at
+    )
+
 @router.get("/plans", response_model=List[schemas.MembershipPlanResponse])
 def get_membership_plans(db: Session = Depends(get_db)):
     """Retrieve all active membership plans."""
@@ -32,7 +58,7 @@ def get_membership_plans(db: Session = Depends(get_db)):
         .order_by(models.MembershipPlan.sort_order.asc(), models.MembershipPlan.price_inr.asc())
         .all()
     )
-    return plans
+    return [format_plan_response(p) for p in plans]
 
 @router.get("/my-subscription", response_model=schemas.UserSubscriptionResponse)
 def get_my_subscription(
@@ -714,7 +740,8 @@ def get_all_admin_plans(
     db: Session = Depends(get_db)
 ):
     """Retrieve all membership plans for editing."""
-    return db.query(models.MembershipPlan).order_by(models.MembershipPlan.sort_order.asc()).all()
+    plans = db.query(models.MembershipPlan).order_by(models.MembershipPlan.sort_order.asc()).all()
+    return [format_plan_response(p) for p in plans]
 
 @router.put("/admin/plans/{plan_id}", response_model=schemas.MembershipPlanResponse)
 def update_membership_plan(
@@ -759,7 +786,7 @@ def update_membership_plan(
     db.add(audit)
     db.commit()
 
-    return plan
+    return format_plan_response(plan)
 
 @router.get("/admin/upi-config", response_model=schemas.UpiConfigResponse)
 def get_admin_upi_config(

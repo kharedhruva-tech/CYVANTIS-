@@ -37,6 +37,7 @@ import { LockedAccessView } from './components/common/LockedAccessView';
 import { MembershipPlansPage } from './pages/MembershipPlansPage';
 import { MySubscriptionPage } from './pages/MySubscriptionPage';
 import { AdminMembershipDashboard } from './pages/AdminMembershipDashboard';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 // Interactive Modals
 import { HackerCardModal } from './components/hacker/HackerCardModal';
@@ -213,7 +214,9 @@ const MainLayout: React.FC = () => {
           onNavigateAlerts={() => setCurrentTab('detection-rules')}
         />
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-          {renderContent()}
+          <ErrorBoundary onReset={() => setCurrentTab('overview')}>
+            {renderContent()}
+          </ErrorBoundary>
         </main>
       </div>
 

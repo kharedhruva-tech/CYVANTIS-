@@ -198,6 +198,7 @@ class MembershipPlan(Base):
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String(50), unique=True, index=True, nullable=False) # free, monthly, quarterly, yearly
     name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
     price_inr = Column(Integer, nullable=False) # 0, 49, 129, 399
     duration_days = Column(Integer, nullable=False) # 0, 30, 90, 365
     features = Column(Text, nullable=False) # JSON array of feature strings

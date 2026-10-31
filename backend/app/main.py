@@ -49,7 +49,8 @@ with engine.connect() as conn:
         "ALTER TABLE alerts ADD COLUMN feedback_label VARCHAR(30)",
         "ALTER TABLE alerts ADD COLUMN feedback_justification TEXT",
         "ALTER TABLE alerts ADD COLUMN feedback_by_id INTEGER",
-        "ALTER TABLE alerts ADD COLUMN feedback_at DATETIME"
+        "ALTER TABLE alerts ADD COLUMN feedback_at DATETIME",
+        "ALTER TABLE membership_plans ADD COLUMN description TEXT"
     ]:
         try:
             conn.execute(text(alter_cmd))

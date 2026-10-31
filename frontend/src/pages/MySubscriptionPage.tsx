@@ -28,6 +28,19 @@ interface MySubscriptionPageProps {
   onNavigateToPlans?: () => void;
 }
 
+const safeFeatures = (features: any): string[] => {
+  if (Array.isArray(features)) return features;
+  if (typeof features === 'string') {
+    try {
+      const parsed = JSON.parse(features);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      return [features];
+    }
+  }
+  return [];
+};
+
 export const MySubscriptionPage: React.FC<MySubscriptionPageProps> = ({
   onNavigateToPlans
 }) => {
@@ -225,7 +238,7 @@ export const MySubscriptionPage: React.FC<MySubscriptionPageProps> = ({
               Active Entitlements:
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
-              {subscription?.features.map((feat, idx) => (
+              {safeFeatures(subscription?.features).map((feat, idx) => (
                 <div key={idx} className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
                   <span>{feat}</span>
@@ -341,17 +354,19 @@ export const MySubscriptionPage: React.FC<MySubscriptionPageProps> = ({
       </div>
 
       {/* Payment Checkout Modal */}
-      <PaymentCheckoutModal
-        plan={selectedPlanForUpgrade}
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedPlanForUpgrade(null);
-        }}
-        onSuccess={() => {
-          loadData();
-        }}
-      />
+      {selectedPlanForUpgrade && (
+        <PaymentCheckoutModal
+          plan={selectedPlanForUpgrade}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedPlanForUpgrade(null);
+          }}
+          onSuccess={() => {
+            loadData();
+          }}
+        />
+      )}
     </div>
   );
 };

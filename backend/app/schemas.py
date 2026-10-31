@@ -1,6 +1,6 @@
 import datetime
 import ipaddress
-from typing import Optional, List
+from typing import Optional, List, Any, Union
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 # Auth & User Schemas
@@ -395,9 +395,10 @@ class MembershipPlanResponse(BaseModel):
     id: int
     code: str
     name: str
-    price_inr: int
+    description: Optional[str] = None
+    price_inr: float
     duration_days: int
-    features: str
+    features: Any
     tier: str
     badge: Optional[str] = None
     daily_scan_limit: int

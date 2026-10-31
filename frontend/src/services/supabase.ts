@@ -36,3 +36,4 @@ export async function supabaseRestQuery<T = any>(
 
   return response.json();
 }
+

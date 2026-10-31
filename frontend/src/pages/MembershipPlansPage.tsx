@@ -10,7 +10,8 @@ import {
   CreditCard,
   QrCode,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import { membershipApi, MembershipPlan, UserSubscription } from '../services/membershipApi';
 import { PremiumBadge } from '../components/membership/PremiumBadge';
@@ -20,10 +21,114 @@ interface MembershipPlansPageProps {
   onNavigateToSubscription?: () => void;
 }
 
+// Built-in fallback plans to guarantee rendering even under network/cold-start delays
+const DEFAULT_FALLBACK_PLANS: MembershipPlan[] = [
+  {
+    id: 1,
+    code: 'free',
+    name: 'Free Operative',
+    description: 'Essential cybersecurity triage tools for students and baseline telemetry.',
+    price_inr: 0,
+    duration_days: 0,
+    tier: 'free',
+    badge: 'STANDARD',
+    daily_scan_limit: 5,
+    features: [
+      'Basic cybersecurity tools',
+      '5 daily scans',
+      'Standard dashboard access',
+      'Community threat advisories',
+      'Standard log extraction'
+    ],
+    is_active: true,
+    sort_order: 1
+  },
+  {
+    id: 2,
+    code: 'monthly',
+    name: 'Monthly Premium',
+    description: 'Full access to advanced offensive and defensive cybersecurity suites.',
+    price_inr: 49,
+    duration_days: 30,
+    tier: 'premium',
+    badge: 'POPULAR',
+    daily_scan_limit: 100,
+    features: [
+      'Full 30-day premium suite access',
+      '100 daily scans',
+      'Advanced Exploit & Payload Lab',
+      'Automated Layer 2/3 Network Sweep',
+      'Deep IOC correlation & VirusTotal intel',
+      'Exportable CSV & JSON forensic reports',
+      'SOC incident investigation workflow'
+    ],
+    is_active: true,
+    sort_order: 2
+  },
+  {
+    id: 3,
+    code: 'quarterly',
+    name: 'Quarterly Premium',
+    description: 'Professional grade security tooling with extended 90-day persistence.',
+    price_inr: 129,
+    duration_days: 90,
+    tier: 'premium',
+    badge: 'RECOMMENDED',
+    daily_scan_limit: 250,
+    features: [
+      'Full 90-day premium access',
+      '250 daily scans',
+      'All Monthly features included',
+      'Advanced attack path correlation graph',
+      'Multi-source Threat Intel (VirusTotal + AbuseIPDB + NVD)',
+      'Automated cyber kill-chain telemetry',
+      'Custom detection rule builder & testing'
+    ],
+    is_active: true,
+    sort_order: 3
+  },
+  {
+    id: 4,
+    code: 'yearly',
+    name: 'Yearly Premium',
+    description: 'Uncapped enterprise cybersecurity powerhouse with 365-day access.',
+    price_inr: 399,
+    duration_days: 365,
+    tier: 'premium',
+    badge: 'BEST VALUE',
+    daily_scan_limit: -1,
+    features: [
+      'Full 365-day enterprise premium access',
+      'Unlimited security scans per day',
+      'Autonomous Defense suite & Cyber War Room',
+      'AI CTF Terminal & Cyber Mentor access',
+      'Executive PDF & Boardroom compliance reporting',
+      'Zero-day outlier anomaly detection simulation',
+      '24/7 Priority SOC engineering support'
+    ],
+    is_active: true,
+    sort_order: 4
+  }
+];
+
+// Helper to safely parse stringified or array features
+const safeFeatures = (features: any): string[] => {
+  if (Array.isArray(features)) return features;
+  if (typeof features === 'string') {
+    try {
+      const parsed = JSON.parse(features);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      return [features];
+    }
+  }
+  return [];
+};
+
 export const MembershipPlansPage: React.FC<MembershipPlansPageProps> = ({
   onNavigateToSubscription
 }) => {
-  const [plans, setPlans] = useState<MembershipPlan[]>([]);
+  const [plans, setPlans] = useState<MembershipPlan[]>(DEFAULT_FALLBACK_PLANS);
   const [currentSub, setCurrentSub] = useState<UserSubscription | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -41,10 +146,12 @@ export const MembershipPlansPage: React.FC<MembershipPlansPageProps> = ({
     setErrorMsg(null);
     try {
       const [fetchedPlans, fetchedSub] = await Promise.all([
-        membershipApi.getPlans(),
-        membershipApi.getMySubscription()
+        membershipApi.getPlans().catch(() => DEFAULT_FALLBACK_PLANS),
+        membershipApi.getMySubscription().catch(() => null)
       ]);
-      setPlans(fetchedPlans);
+      if (fetchedPlans && fetchedPlans.length > 0) {
+        setPlans(fetchedPlans);
+      }
       setCurrentSub(fetchedSub);
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to load membership plans.');
@@ -89,7 +196,7 @@ export const MembershipPlansPage: React.FC<MembershipPlansPageProps> = ({
             <div className="flex flex-wrap items-center gap-4 p-4 rounded-2xl border border-slate-800 bg-slate-900/80 backdrop-blur-md">
               <div className="text-xs text-slate-400">
                 <span>Active Status: </span>
-                <span className="font-semibold text-white">{currentSub.plan_name}</span>
+                <span className="font-semibold text-white">{currentSub.plan_name || 'Free Tier'}</span>
               </div>
 
               <PremiumBadge
@@ -121,120 +228,121 @@ export const MembershipPlansPage: React.FC<MembershipPlansPageProps> = ({
       </div>
 
       {errorMsg && (
-        <div className="p-4 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-300 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-          <span>{errorMsg}</span>
+        <div className="p-4 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-300 text-xs flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+          <button
+            onClick={fetchData}
+            className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-xs font-mono flex items-center gap-1"
+          >
+            <RefreshCw className="w-3 h-3" />
+            <span>Retry</span>
+          </button>
         </div>
       )}
 
       {/* Pricing Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {isLoading ? (
-          Array.from({ length: 4 }).map((_, i) => (
+        {plans.map((plan) => {
+          const isFree = plan.tier === 'free';
+          const isCurrentPlan = currentSub?.plan_code === plan.code && currentSub?.status === 'active';
+          const isBestValue = plan.badge === 'BEST VALUE' || plan.code === 'yearly';
+          const isPopular = plan.badge === 'POPULAR' || plan.code === 'monthly';
+          const featureItems = safeFeatures(plan.features);
+
+          return (
             <div
-              key={i}
-              className="h-96 rounded-2xl border border-slate-800 bg-slate-900/40 animate-pulse p-6"
-            />
-          ))
-        ) : (
-          plans.map((plan) => {
-            const isFree = plan.tier === 'free';
-            const isCurrentPlan = currentSub?.plan_code === plan.code && currentSub?.status === 'active';
-            const isBestValue = plan.badge === 'BEST VALUE' || plan.code === 'yearly';
-            const isPopular = plan.badge === 'POPULAR' || plan.code === 'monthly';
-
-            return (
-              <div
-                key={plan.id}
-                className={`relative flex flex-col justify-between rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1 ${
-                  isBestValue
-                    ? 'border-cyan-400/60 bg-gradient-to-b from-cyan-950/40 via-slate-900 to-slate-950 shadow-[0_0_35px_rgba(6,182,212,0.2)]'
-                    : isPopular
-                    ? 'border-blue-500/40 bg-gradient-to-b from-blue-950/30 via-slate-900 to-slate-950'
-                    : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'
-                }`}
-              >
-                {/* Top Badge */}
-                {plan.badge && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span
-                      className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border shadow-md ${
-                        isBestValue
-                          ? 'border-cyan-400 bg-cyan-400 text-slate-950'
-                          : 'border-blue-400 bg-blue-500/20 text-blue-300'
-                      }`}
-                    >
-                      {plan.badge}
-                    </span>
-                  </div>
-                )}
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-bold text-white tracking-wide">{plan.name}</h3>
-                    {isFree ? (
-                      <Shield className="w-5 h-5 text-slate-400" />
-                    ) : (
-                      <Zap className="w-5 h-5 text-cyan-400" />
-                    )}
-                  </div>
-
-                  <p className="text-xs text-slate-400 mb-6 min-h-[32px] leading-relaxed">
-                    {plan.description}
-                  </p>
-
-                  {/* Price */}
-                  <div className="flex items-baseline gap-1.5 mb-6">
-                    <span className="text-3xl md:text-4xl font-extrabold font-mono text-white">
-                      ₹{plan.price_inr}
-                    </span>
-                    <span className="text-xs text-slate-400 font-mono">
-                      {isFree ? '/ forever' : `/ ${plan.duration_days} days`}
-                    </span>
-                  </div>
-
-                  {/* Features List */}
-                  <div className="space-y-3 pt-4 border-t border-slate-800/80 mb-6">
-                    <div className="text-[11px] font-mono font-semibold uppercase text-slate-400 tracking-wider">
-                      Included Capabilities:
-                    </div>
-                    {plan.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-300">
-                        <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
-                        <span className="leading-snug">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
+              key={plan.id || plan.code}
+              className={`relative flex flex-col justify-between rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1 ${
+                isBestValue
+                  ? 'border-cyan-400/60 bg-gradient-to-b from-cyan-950/40 via-slate-900 to-slate-950 shadow-[0_0_35px_rgba(6,182,212,0.2)]'
+                  : isPopular
+                  ? 'border-blue-500/40 bg-gradient-to-b from-blue-950/30 via-slate-900 to-slate-950'
+                  : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'
+              }`}
+            >
+              {/* Top Badge */}
+              {plan.badge && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span
+                    className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border shadow-md ${
+                      isBestValue
+                        ? 'border-cyan-400 bg-cyan-400 text-slate-950'
+                        : 'border-blue-400 bg-blue-500/20 text-blue-300'
+                    }`}
+                  >
+                    {plan.badge}
+                  </span>
                 </div>
+              )}
 
-                {/* Call to Action */}
-                <div className="pt-4">
-                  {isCurrentPlan ? (
-                    <div className="w-full py-2.5 px-4 rounded-xl text-center text-xs font-semibold font-mono border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 flex items-center justify-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>YOUR CURRENT PLAN</span>
-                    </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-bold text-white tracking-wide">{plan.name}</h3>
+                  {isFree ? (
+                    <Shield className="w-5 h-5 text-slate-400" />
                   ) : (
-                    <button
-                      onClick={() => handleSelectPlan(plan)}
-                      disabled={isFree}
-                      className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-                        isFree
-                          ? 'border border-slate-700 bg-slate-800/40 text-slate-400 cursor-default'
-                          : isBestValue
-                          ? 'bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 font-extrabold shadow-[0_0_20px_rgba(6,182,212,0.4)]'
-                          : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.3)]'
-                      }`}
-                    >
-                      <span>{isFree ? 'Current Baseline' : `Upgrade to ${plan.name}`}</span>
-                      {!isFree && <ArrowRight className="w-3.5 h-3.5" />}
-                    </button>
+                    <Zap className="w-5 h-5 text-cyan-400" />
                   )}
                 </div>
+
+                <p className="text-xs text-slate-400 mb-6 min-h-[32px] leading-relaxed">
+                  {plan.description || ''}
+                </p>
+
+                {/* Price */}
+                <div className="flex items-baseline gap-1.5 mb-6">
+                  <span className="text-3xl md:text-4xl font-extrabold font-mono text-white">
+                    ₹{plan.price_inr}
+                  </span>
+                  <span className="text-xs text-slate-400 font-mono">
+                    {isFree ? '/ forever' : `/ ${plan.duration_days} days`}
+                  </span>
+                </div>
+
+                {/* Features List */}
+                <div className="space-y-3 pt-4 border-t border-slate-800/80 mb-6">
+                  <div className="text-[11px] font-mono font-semibold uppercase text-slate-400 tracking-wider">
+                    Included Capabilities:
+                  </div>
+                  {featureItems.map((feature, idx) => (
+                    <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-300">
+                      <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+                      <span className="leading-snug">{feature}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            );
-          })
-        )}
+
+              {/* Call to Action */}
+              <div className="pt-4">
+                {isCurrentPlan ? (
+                  <div className="w-full py-2.5 px-4 rounded-xl text-center text-xs font-semibold font-mono border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 flex items-center justify-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>YOUR CURRENT PLAN</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleSelectPlan(plan)}
+                    disabled={isFree}
+                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                      isFree
+                        ? 'border border-slate-700 bg-slate-800/40 text-slate-400 cursor-default'
+                        : isBestValue
+                        ? 'bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 font-extrabold shadow-[0_0_20px_rgba(6,182,212,0.4)]'
+                        : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.3)]'
+                    }`}
+                  >
+                    <span>{isFree ? 'Current Baseline' : `Upgrade to ${plan.name}`}</span>
+                    {!isFree && <ArrowRight className="w-3.5 h-3.5" />}
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Feature Comparison Matrix & FAQ */}
@@ -313,17 +421,19 @@ export const MembershipPlansPage: React.FC<MembershipPlansPageProps> = ({
       </div>
 
       {/* Payment Checkout Modal */}
-      <PaymentCheckoutModal
-        plan={selectedPlanForCheckout}
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedPlanForCheckout(null);
-        }}
-        onSuccess={() => {
-          fetchData();
-        }}
-      />
+      {selectedPlanForCheckout && (
+        <PaymentCheckoutModal
+          plan={selectedPlanForCheckout}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedPlanForCheckout(null);
+          }}
+          onSuccess={() => {
+            fetchData();
+          }}
+        />
+      )}
     </div>
   );
 };

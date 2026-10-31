@@ -10,7 +10,7 @@ export interface MembershipPlan {
   tier: 'free' | 'premium';
   badge?: string;
   daily_scan_limit: number;
-  features: string[];
+  features: string[] | string;
   is_active: boolean;
   sort_order: number;
 }
@@ -48,7 +48,7 @@ export interface UserSubscription {
   days_remaining?: number | null;
   daily_scan_limit: number;
   is_premium: boolean;
-  features: string[];
+  features: string[] | string;
   pending_order?: PaymentOrder | null;
 }
 
@@ -213,3 +213,4 @@ export const membershipApi = {
     return `${API_BASE_URL}/memberships/receipts/${clean}${token ? `?token=${encodeURIComponent(token)}` : ''}`;
   }
 };
+
