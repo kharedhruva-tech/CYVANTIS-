@@ -17,7 +17,7 @@ from app.websocket import manager
 from app.routers import (
     auth, users, events, analytics, intelligence, investigations,
     rules, reports, admin_data, storage, health, audit, security_audit, tools, advisories, settings as settings_router, ml, recon, pentest_guardrails, advanced_pentest, living_telemetry,
-    domain_intel, offensive_testing, cli_router, defensive_suite, elite_ops, ai_terminal, mitre
+    domain_intel, offensive_testing, cli_router, defensive_suite, elite_ops, ai_terminal, mitre, memberships
 )
 
 # Initialize database schema
@@ -172,6 +172,7 @@ app.include_router(defensive_suite.router, prefix=settings.API_V1_STR)
 app.include_router(elite_ops.router, prefix=settings.API_V1_STR)
 app.include_router(ai_terminal.router, prefix=settings.API_V1_STR)
 app.include_router(mitre.router, prefix=settings.API_V1_STR)
+app.include_router(memberships.router, prefix=settings.API_V1_STR)
 
 # Protected WebSocket endpoint for Live Honeypot & Incident Feed
 @app.websocket("/api/v1/ws/events")

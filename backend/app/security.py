@@ -93,3 +93,117 @@ def require_roles(allowed_roles: List[str]):
             )
         return current_user
     return role_checker
+
+
+def check_user_membership(user: models.User, db: Session) -> dict:
+    """Checks the live membership and subscription status of a user."""
+    # 1. Chief SOC Administrator has permanent unlimited Enterprise clearance
+    if user.role == "admin":
+        return {
+            "tier": "enterprise_admin",
+            "is_premium": True,
+            "status": "active",
+            "plan_code": "yearly",
+            "plan_name": "Chief SOC Administrator Clearance",
+            "start_date": None,
+            "end_date": None,
+            "days_remaining": 9999,
+            "daily_scan_limit": -1,
+            "features": ["All Enterprise Capabilities", "Full Administrative Access", "Unlimited Scans"]
+        }
+
+    now = datetime.datetime.utcnow()
+    # 2. Check active membership record
+    active_mem = (
+        db.query(models.Membership)
+        .filter(
+            models.Membership.user_id == user.id,
+            models.Membership.status == "active",
+            models.Membership.end_date > now
+        )
+        .order_by(models.Membership.end_date.desc())
+        .first()
+    )
+
+    if active_mem:
+        plan = db.query(models.MembershipPlan).filter(models.MembershipPlan.id == active_mem.plan_id).first()
+        import json
+        features_list = json.loads(plan.features) if plan and plan.features else []
+        days_rem = max(0, (active_mem.end_date - now).days)
+        return {
+            "tier": plan.tier if plan else "premium",
+            "is_premium": True,
+            "status": "active",
+            "plan_code": plan.code if plan else "premium",
+            "plan_name": plan.name if plan else "Premium Plan",
+            "start_date": active_mem.start_date,
+            "end_date": active_mem.end_date,
+            "days_remaining": days_rem,
+            "daily_scan_limit": plan.daily_scan_limit if plan else 100,
+            "features": features_list
+        }
+
+    # 3. Check if membership has expired
+    expired_mem = (
+        db.query(models.Membership)
+        .filter(models.Membership.user_id == user.id)
+        .order_by(models.Membership.end_date.desc())
+        .first()
+    )
+
+    if expired_mem and expired_mem.end_date <= now:
+        plan = db.query(models.MembershipPlan).filter(models.MembershipPlan.id == expired_mem.plan_id).first()
+        return {
+            "tier": "free",
+            "is_premium": False,
+            "status": "expired",
+            "plan_code": "free",
+            "plan_name": "Free Tier (Expired)",
+            "start_date": expired_mem.start_date,
+            "end_date": expired_mem.end_date,
+            "days_remaining": 0,
+            "daily_scan_limit": 5,
+            "features": ["Basic cybersecurity tools", "5 daily scans", "Standard dashboard access"]
+        }
+
+    # 4. Check for pending payment orders
+    pending_order = (
+        db.query(models.PaymentOrder)
+        .filter(
+            models.PaymentOrder.user_id == user.id,
+            models.PaymentOrder.status == "pending"
+        )
+        .order_by(models.PaymentOrder.created_at.desc())
+        .first()
+    )
+
+    status_str = "pending_approval" if pending_order else "none"
+
+    return {
+        "tier": "free",
+        "is_premium": False,
+        "status": status_str,
+        "plan_code": "free",
+        "plan_name": "Free Tier",
+        "start_date": None,
+        "end_date": None,
+        "days_remaining": None,
+        "daily_scan_limit": 5,
+        "features": ["Basic cybersecurity tools", "5 daily scans", "Standard dashboard access"]
+    }
+
+def require_premium_access(feature_name: str = "This Cybersecurity Tool"):
+    """Server-side dependency enforcing active premium subscription before executing protected operations."""
+    def membership_checker(
+        current_user: models.User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+    ):
+        info = check_user_membership(current_user, db)
+        if not info["is_premium"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access Denied: '{feature_name}' requires an active CYVANTIS Premium Membership. Please upgrade your subscription.",
+                headers={"X-Upgrade-Required": "true"}
+            )
+        return current_user
+    return membership_checker

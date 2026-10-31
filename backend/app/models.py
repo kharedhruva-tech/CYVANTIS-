@@ -170,3 +170,108 @@ class BackupRecord(Base):
     status = Column(String(20), default="success") # success, failed
     is_automated = Column(Boolean, default=False)
     created_by = Column(String(50), default="system")
+
+
+# ==============================================================================
+# Premium Membership, Subscription & Payment System Models
+# ==============================================================================
+
+class UserProfile(Base):
+    __tablename__ = "profiles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False, index=True)
+    full_name = Column(String(100), nullable=True)
+    avatar_url = Column(String(255), nullable=True)
+    bio = Column(Text, nullable=True)
+    organization = Column(String(100), nullable=True)
+    phone = Column(String(20), nullable=True)
+    role = Column(String(20), default="analyst", nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    user = relationship("User", backref="profile", uselist=False)
+
+class MembershipPlan(Base):
+    __tablename__ = "membership_plans"
+
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String(50), unique=True, index=True, nullable=False) # free, monthly, quarterly, yearly
+    name = Column(String(100), nullable=False)
+    price_inr = Column(Integer, nullable=False) # 0, 49, 129, 399
+    duration_days = Column(Integer, nullable=False) # 0, 30, 90, 365
+    features = Column(Text, nullable=False) # JSON array of feature strings
+    tier = Column(String(20), default="premium", nullable=False) # free, premium
+    badge = Column(String(50), nullable=True) # e.g. "POPULAR", "BEST VALUE"
+    daily_scan_limit = Column(Integer, default=10) # 5 for free, 100 for monthly, 250 for quarterly, -1 for unlimited
+    is_active = Column(Boolean, default=True, nullable=False)
+    sort_order = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+class PaymentOrder(Base):
+    __tablename__ = "payment_orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_code = Column(String(100), unique=True, index=True, nullable=False) # e.g. CYV-ORD-202610-ABCD
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    plan_id = Column(Integer, ForeignKey("membership_plans.id"), nullable=False)
+    amount_inr = Column(Integer, nullable=False)
+    payment_method = Column(String(30), nullable=False) # "upi_qr" or "razorpay"
+    gateway_order_id = Column(String(100), nullable=True, index=True)
+    gateway_payment_id = Column(String(100), nullable=True, index=True)
+    gateway_signature = Column(String(255), nullable=True)
+    upi_ref_no = Column(String(100), nullable=True, index=True) # UTR or transaction ref
+    receipt_image_path = Column(String(255), nullable=True) # stored filename
+    status = Column(String(20), default="pending", index=True, nullable=False) # pending, approved, rejected
+    verified_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    verified_at = Column(DateTime, nullable=True)
+    admin_notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    user = relationship("User", foreign_keys=[user_id], backref="orders")
+    plan = relationship("MembershipPlan")
+    verified_by = relationship("User", foreign_keys=[verified_by_id])
+
+class Membership(Base):
+    __tablename__ = "memberships"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    plan_id = Column(Integer, ForeignKey("membership_plans.id"), nullable=False)
+    order_id = Column(Integer, ForeignKey("payment_orders.id"), nullable=True)
+    status = Column(String(20), default="active", index=True, nullable=False) # active, expired, cancelled
+    start_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    end_date = Column(DateTime, nullable=False, index=True)
+    auto_renew = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    user = relationship("User", backref="memberships")
+    plan = relationship("MembershipPlan")
+    order = relationship("PaymentOrder")
+
+class PaymentAuditLog(Base):
+    __tablename__ = "payment_audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, nullable=True, index=True)
+    user_id = Column(Integer, nullable=True, index=True)
+    actor_id = Column(Integer, nullable=True)
+    actor_username = Column(String(50), nullable=False)
+    action = Column(String(50), nullable=False) # ORDER_CREATED, RECEIPT_SUBMITTED, PAYMENT_APPROVED, PAYMENT_REJECTED, MANUAL_ACTIVATION, MEMBERSHIP_REVOKED, PLAN_UPDATED, UPI_CONFIG_UPDATED
+    details = Column(Text, nullable=True)
+    ip_address = Column(String(45), nullable=True)
+    timestamp = Column(DateTime, default=datetime.datetime.utcnow, index=True, nullable=False)
+
+class UpiConfig(Base):
+    __tablename__ = "upi_configs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    upi_id = Column(String(100), default="cyvantis.pay@upi", nullable=False)
+    account_name = Column(String(100), default="CYVANTIS Cybersecurity Nexus", nullable=False)
+    qr_image_url = Column(String(255), nullable=True)
+    instructions = Column(Text, nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)

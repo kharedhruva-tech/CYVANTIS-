@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/kharedhruva-tech/CYVANTIS-/actions"><img src="https://img.shields.io/badge/Tests-57%20Passed-brightgreen?style=for-the-badge&logo=pytest" alt="Tests" /></a>
+  <a href="https://github.com/kharedhruva-tech/CYVANTIS-/actions"><img src="https://img.shields.io/badge/Tests-63%20Passed-brightgreen?style=for-the-badge&logo=pytest" alt="Tests" /></a>
   <a href="https://cyvantis-frontend.onrender.com"><img src="https://img.shields.io/badge/Render-Live%20Deploy-00d2ff?style=for-the-badge&logo=render" alt="Live Demo" /></a>
   <a href="https://cyvantis.onrender.com/api/v1/docs"><img src="https://img.shields.io/badge/FastAPI-Swagger%20Docs-009688?style=for-the-badge&logo=fastapi" alt="API Docs" /></a>
   <a href="https://react.dev"><img src="https://img.shields.io/badge/React%2019-Vite%20%2B%20Tailwind-61DAFB?style=for-the-badge&logo=react" alt="React 19" /></a>
@@ -302,10 +302,43 @@ CYVANTIS/
 │   │   ├── pages/                     # 26 SOC monitoring views & landing showcase
 │   │   └── services/api.ts            # Dynamic API & WebSocket endpoint resolver
 │   └── package.json                   # React 19 + Vite dependencies
+├── supabase_schema.sql                # Production Supabase PostgreSQL RLS Schema & Triggers
 ├── render.yaml                        # 1-Click Render Cloud Blueprint
 ├── cyvantis.py                        # SOC administrative CLI tool
 └── README.md                          # Platform documentation
 ```
+
+---
+
+## 💎 Premium Membership & Subscription Payment System
+
+CYVANTIS features a complete, production-grade subscription lifecycle with zero dummy data and strict cryptographic verification:
+
+### 1. Affordable Membership Tiers
+* **Free Operative (₹0)**: Baseline threat triage, 5 daily scans, community advisories, and standard dashboard monitoring.
+* **Monthly Premium (₹49 / 30 Days)**: Exploit & Payload Lab, 100 daily scans, full Layer 2/3 Network Sweep, scan history, and exportable forensic reports.
+* **Quarterly Premium (₹129 / 90 Days)**: All Monthly features, 250 daily scans, attack path correlation graphs, and multi-source threat intel.
+* **Yearly Premium (₹399 / 365 Days)**: Uncapped scans, Autonomous Cyber War Room, AI CTF Terminal & Mentor, Boardroom PDF compliance reports, and priority SOC desk support.
+
+### 2. Dual Payment Architecture
+* **Method A: Dynamic UPI QR & VPA Payment**:
+  * Displays dynamic QR code and official UPI ID (`cyvantis.pay@upi`).
+  * 1-Click copy for amount and VPA.
+  * Captures 12-digit UPI UTR / Reference number with duplicate submission prevention.
+  * Secure screenshot receipt upload (`.png`, `.jpg`, `.webp` up to 5MB).
+  * Human-in-the-loop SOC Admin verification queue — *never automatically activated without administrator sign-off*.
+* **Method B: Online Payment Gateway (Razorpay)**:
+  * Server-side order token initialization.
+  * HMAC-SHA256 signature verification.
+  * Protection against replay attacks and duplicate payment IDs.
+
+### 3. Dedicated Admin Command Desk & RLS
+* **Verification Queue**: Review pending orders, inspect uploaded receipts in a modal viewer, and 1-click Approve or Reject with audit notes.
+* **Atomic Subscription Management**: Approving an active member extends their duration from current expiry rather than overwriting.
+* **Direct Grant / Revoke**: Manually activate or cancel subscriptions for students, demo accounts, or wire settlements.
+* **Plan & UPI Configuration**: Real-time pricing, duration, daily scan quota, and UPI ID editing directly from the GUI.
+* **Immutable Audit Trail**: Logs every approval, rejection, and manual change with actor identity, timestamp, and IP address.
+* **Supabase Dual-Compatibility**: Ready-to-deploy [`supabase_schema.sql`](./supabase_schema.sql) with PostgreSQL Row Level Security (RLS), auto-profile creation triggers, and private receipt storage policies.
 
 ---
 

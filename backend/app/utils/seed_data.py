@@ -5,7 +5,8 @@ import json
 from sqlalchemy.orm import Session
 from app.models import (
     User, HoneypotEvent, Investigation, InvestigationNote, Alert,
-    DetectionRule, ThreatIntelIOC, AuditLog, PlatformSetting, BackupRecord
+    DetectionRule, ThreatIntelIOC, AuditLog, PlatformSetting, BackupRecord,
+    MembershipPlan, UpiConfig, Membership, UserProfile
 )
 from app.security import get_password_hash
 from app.geoip_service import enrich_ip
@@ -279,5 +280,132 @@ def seed_database(db: Session):
         )
         db.add(audit)
         db.commit()
+
+    
+    # 7. Seed Membership Plans if not present
+    if not db.query(MembershipPlan).first():
+        plans = [
+            MembershipPlan(
+                code="free",
+                name="Free Tier",
+                price_inr=0,
+                duration_days=0,
+                tier="free",
+                badge=None,
+                daily_scan_limit=5,
+                sort_order=1,
+                is_active=True,
+                features=json.dumps([
+                    "Basic cybersecurity tools (Subnet, Hash, Headers)",
+                    "5 security scans per day",
+                    "Standard honeypot telemetry dashboard",
+                    "Basic security advisories & CVE summary",
+                    "Standard community support"
+                ])
+            ),
+            MembershipPlan(
+                code="monthly",
+                name="Monthly Premium",
+                price_inr=49,
+                duration_days=30,
+                tier="premium",
+                badge="STARTER",
+                daily_scan_limit=100,
+                sort_order=2,
+                is_active=True,
+                features=json.dumps([
+                    "All Free features included",
+                    "Access to eligible Premium tools & forensics",
+                    "100 security scans per day",
+                    "Full scan history & forensic export",
+                    "Detailed incident correlation & reports",
+                    "Standard threat intelligence feeds (AbuseIPDB)",
+                    "Priority event explorer filtering"
+                ])
+            ),
+            MembershipPlan(
+                code="quarterly",
+                name="Quarterly Premium",
+                price_inr=129,
+                duration_days=90,
+                tier="premium",
+                badge="MOST POPULAR",
+                daily_scan_limit=250,
+                sort_order=3,
+                is_active=True,
+                features=json.dumps([
+                    "All Monthly features included",
+                    "Full 90-day continuous premium membership",
+                    "250 security scans per day",
+                    "Advanced attack path correlation graph",
+                    "Multi-source Threat Intel (VirusTotal + AbuseIPDB + NVD)",
+                    "Automated cyber kill-chain telemetry",
+                    "Custom detection rule builder & testing"
+                ])
+            ),
+            MembershipPlan(
+                code="yearly",
+                name="Yearly Premium",
+                price_inr=399,
+                duration_days=365,
+                tier="premium",
+                badge="BEST VALUE",
+                daily_scan_limit=-1,
+                sort_order=4,
+                is_active=True,
+                features=json.dumps([
+                    "Full 365-day enterprise premium access",
+                    "Unlimited security scans per day",
+                    "Autonomous Defense suite & Cyber War Room",
+                    "AI CTF Terminal & Cyber Mentor access",
+                    "Executive PDF & Boardroom compliance reporting",
+                    "Zero-day outlier anomaly detection simulation",
+                    "24/7 Priority SOC engineering support"
+                ])
+            )
+        ]
+        db.add_all(plans)
+        try:
+            db.commit()
+            print("[+] Membership plans seeded successfully.")
+        except Exception as e:
+            db.rollback()
+            print("[-] Failed to seed membership plans:", e)
+
+    # 8. Seed Default UPI Configuration if not present
+    if not db.query(UpiConfig).first():
+        upi_cfg = UpiConfig(
+            upi_id="cyvantis.pay@upi",
+            account_name="CYVANTIS Cybersecurity Nexus",
+            qr_image_url=None,
+            instructions="Scan using any UPI App (Google Pay, PhonePe, Paytm, BHIM, Cred) or enter the UPI ID manually. After completing payment, enter your 12-digit UTR/Reference number and upload your payment screenshot. An Admin will review and activate your subscription.",
+            is_active=True
+        )
+        db.add(upi_cfg)
+        try:
+            db.commit()
+            print("[+] Default UPI config seeded.")
+        except Exception:
+            db.rollback()
+
+    # 9. Ensure Admin has an active Enterprise Membership
+    admin_usr = db.query(User).filter(User.username == "admin").first()
+    if admin_usr:
+        yearly_plan = db.query(MembershipPlan).filter(MembershipPlan.code == "yearly").first()
+        existing_mem = db.query(Membership).filter(Membership.user_id == admin_usr.id).first()
+        if not existing_mem and yearly_plan:
+            admin_mem = Membership(
+                user_id=admin_usr.id,
+                plan_id=yearly_plan.id,
+                status="active",
+                start_date=datetime.datetime.utcnow() - datetime.timedelta(days=1),
+                end_date=datetime.datetime.utcnow() + datetime.timedelta(days=3650), # 10 years enterprise clearance
+                auto_renew=True
+            )
+            db.add(admin_mem)
+            try:
+                db.commit()
+            except Exception:
+                db.rollback()
 
     print("[+] Database seeding complete.")

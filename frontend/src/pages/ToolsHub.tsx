@@ -8,21 +8,40 @@ import { useAuth } from '../context/AuthContext';
 import { apiRequest } from '../services/api';
 import { useHackerProfile } from '../context/HackerProfileContext';
 import { ToolNotesDrawer } from '../components/hacker/ToolNotesDrawer';
+import { PremiumGate } from '../components/membership/PremiumGate';
+import { membershipApi } from '../services/membershipApi';
 
 export interface ToolsHubProps {
   onOpenComparison?: () => void;
   onOpenRoulette?: () => void;
   onOpenCtfHub?: () => void;
   onOpenHackerCard?: () => void;
+  onNavigateToMembership?: () => void;
 }
 
 export const ToolsHub: React.FC<ToolsHubProps> = ({
   onOpenComparison,
   onOpenRoulette,
   onOpenCtfHub,
-  onOpenHackerCard
+  onOpenHackerCard,
+  onNavigateToMembership
 }) => {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  const [isPremiumUser, setIsPremiumUser] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      setIsPremiumUser(true);
+      return;
+    }
+    membershipApi.getMySubscription()
+      .then((sub) => {
+        setIsPremiumUser(sub?.is_premium ?? false);
+      })
+      .catch(() => {
+        setIsPremiumUser(false);
+      });
+  }, [user]);
   const { profile, recordToolUse } = useHackerProfile();
   const [showNotesDrawer, setShowNotesDrawer] = useState<boolean>(false);
   const [selectedPlaylistFilter, setSelectedPlaylistFilter] = useState<string>('all');
@@ -484,7 +503,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           { id: 'decoder', label: '2. Encoder / Decoder / JWT', icon: Code2 },
           { id: 'subnet', label: '3. Subnet & CIDR Calculator', icon: Calculator },
           { id: 'password', label: '4. Password Entropy Tester', icon: KeyRound },
-          { id: 'log-extractor', label: '5. Log & IOC Extractor', icon: FileText },
+          { id: 'log-extractor', label: '5. Log & IOC Extractor', icon: FileText, badge: 'PREMIUM' },
           { id: 'header-auditor', label: '6. HTTP Headers Auditor', icon: Shield },
           { id: 'hash-gen', label: '7. Hash Checksum Generator', icon: Hash },
           { id: 'soc-stack', label: '8. Core SOC Technology Stack', icon: Layers },
@@ -1110,6 +1129,12 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           TAB 5: LOG & IOC EXTRACTOR WORKBENCH
       ===================================================================== */}
       {activeTab === 'log-extractor' && (
+        <PremiumGate
+          isPremium={isPremiumUser}
+          featureTitle="Log & Threat IOC Extractor"
+          featureDescription="Extract, deduplicate, and correlate high-volume logs with AI threat severity prediction. Requires CYVANTIS Premium access."
+          onUpgradeClick={onNavigateToMembership}
+        >
         <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5 space-y-5 font-mono text-xs shadow-xl">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
@@ -1206,6 +1231,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             </div>
           )}
         </div>
+        </PremiumGate>
       )}
 
       {/* =====================================================================

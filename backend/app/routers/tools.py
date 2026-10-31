@@ -13,7 +13,7 @@ from pydantic import BaseModel
 import httpx
 
 from sqlalchemy.orm import Session
-from app.security import get_current_user
+from app.security import get_current_user, require_premium_access
 from app.database import get_db
 from app.models import User, HoneypotEvent
 from app.geoip_service import enrich_ip
@@ -569,7 +569,7 @@ class LogExtractorRequest(BaseModel):
 @router.post("/log-extractor")
 def extract_iocs_from_log(
     req: LogExtractorRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_premium_access("Log Extractor & Threat Parser"))
 ) -> Dict[str, Any]:
     """
     Parses raw log text to extract and deduplicate IPv4, IPv6, Domains, Hashes,

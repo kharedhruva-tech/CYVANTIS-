@@ -385,3 +385,130 @@ class BackupRecordResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ==============================================================================
+# Premium Membership & Payment Schemas
+# ==============================================================================
+
+class MembershipPlanResponse(BaseModel):
+    id: int
+    code: str
+    name: str
+    price_inr: int
+    duration_days: int
+    features: str
+    tier: str
+    badge: Optional[str] = None
+    daily_scan_limit: int
+    is_active: bool
+    sort_order: int
+    created_at: Optional[datetime.datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class MembershipPlanUpdate(BaseModel):
+    name: Optional[str] = None
+    price_inr: Optional[int] = None
+    duration_days: Optional[int] = None
+    features: Optional[str] = None
+    badge: Optional[str] = None
+    daily_scan_limit: Optional[int] = None
+    is_active: Optional[bool] = None
+
+class CreateOrderRequest(BaseModel):
+    plan_id: int
+    payment_method: str = "upi_qr" # "upi_qr" or "razorpay"
+
+class VerifyRazorpayRequest(BaseModel):
+    order_code: str
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+
+class PaymentOrderResponse(BaseModel):
+    id: int
+    order_code: str
+    user_id: int
+    username: Optional[str] = None
+    user_email: Optional[str] = None
+    plan_id: int
+    plan_name: Optional[str] = None
+    amount_inr: int
+    payment_method: str
+    gateway_order_id: Optional[str] = None
+    gateway_payment_id: Optional[str] = None
+    upi_ref_no: Optional[str] = None
+    receipt_image_path: Optional[str] = None
+    status: str
+    verified_by_id: Optional[int] = None
+    verified_at: Optional[datetime.datetime] = None
+    admin_notes: Optional[str] = None
+    created_at: datetime.datetime
+
+    class Config:
+        from_attributes = True
+
+class VerifyOrderRequest(BaseModel):
+    action: str # "approve" or "reject"
+    admin_notes: Optional[str] = None
+
+class ManualMembershipRequest(BaseModel):
+    user_id: int
+    action: Optional[str] = "grant" # "grant" or "revoke"
+    plan_code: Optional[str] = None
+    plan_id: Optional[int] = None
+    duration_days: Optional[int] = 30
+    notes: Optional[str] = None
+
+class UserSubscriptionResponse(BaseModel):
+    tier: str # "free", "premium", "enterprise_admin"
+    status: str # "active", "expired", "pending_approval", "none"
+    is_premium: bool
+    plan_code: str
+    plan_name: str
+    amount_paid: int
+    start_date: Optional[datetime.datetime] = None
+    end_date: Optional[datetime.datetime] = None
+    days_remaining: Optional[int] = None
+    features: List[str]
+    daily_scan_limit: int
+    pending_order: Optional[PaymentOrderResponse] = None
+
+class UpiConfigResponse(BaseModel):
+    id: int
+    upi_id: str
+    account_name: str
+    qr_image_url: Optional[str] = None
+    instructions: Optional[str] = None
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+class UpiConfigUpdate(BaseModel):
+    upi_id: Optional[str] = None
+    account_name: Optional[str] = None
+    instructions: Optional[str] = None
+
+class PaymentAuditLogResponse(BaseModel):
+    id: int
+    order_id: Optional[int] = None
+    user_id: Optional[int] = None
+    actor_username: str
+    action: str
+    details: Optional[str] = None
+    ip_address: Optional[str] = None
+    timestamp: datetime.datetime
+
+    class Config:
+        from_attributes = True
+
+class AdminMembershipOverview(BaseModel):
+    total_users: int
+    active_premium: int
+    pending_orders: int
+    approved_orders: int
+    rejected_orders: int
+    total_revenue_inr: int

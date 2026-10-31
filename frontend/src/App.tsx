@@ -34,6 +34,9 @@ import { CyberDefenseSuite } from './pages/CyberDefenseSuite';
 import { EliteSecurityOperations } from './pages/EliteSecurityOperations';
 import { InteractiveTerminal } from './pages/InteractiveTerminal';
 import { LockedAccessView } from './components/common/LockedAccessView';
+import { MembershipPlansPage } from './pages/MembershipPlansPage';
+import { MySubscriptionPage } from './pages/MySubscriptionPage';
+import { AdminMembershipDashboard } from './pages/AdminMembershipDashboard';
 
 // Interactive Modals
 import { HackerCardModal } from './components/hacker/HackerCardModal';
@@ -140,6 +143,7 @@ const MainLayout: React.FC = () => {
             onOpenRoulette={() => setShowRoulette(true)}
             onOpenCtfHub={() => setShowCtfHub(true)}
             onOpenHackerCard={() => setShowHackerCard(true)}
+            onNavigateToMembership={() => setCurrentTab('membership')}
           />
         );
       case 'cve-radar':
@@ -172,6 +176,14 @@ const MainLayout: React.FC = () => {
           : <LockedAccessView featureName="System Settings and API Keys" onNavigateHome={() => setCurrentTab('overview')} userRole={user?.role} />;
       case 'security-hardening':
         return <SecurityHardening />;
+      case 'membership':
+        return <MembershipPlansPage onNavigateToSubscription={() => setCurrentTab('my-subscription')} />;
+      case 'my-subscription':
+        return <MySubscriptionPage onNavigateToPlans={() => setCurrentTab('membership')} />;
+      case 'admin-memberships':
+        return user?.role === 'admin'
+          ? <AdminMembershipDashboard />
+          : <LockedAccessView featureName="Admin Payment & Membership Desk" onNavigateHome={() => setCurrentTab('overview')} userRole={user?.role} />;
       default:
         return <Overview onNavigateTab={(tab) => setCurrentTab(tab)} />;
     }

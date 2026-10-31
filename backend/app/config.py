@@ -39,6 +39,15 @@ class Settings(BaseSettings):
     BACKUP_DIR: str = os.getenv("BACKUP_DIR", "./backups")
     RETENTION_DAYS: int = int(os.getenv("RETENTION_DAYS", "90"))
 
+    # Premium Membership & Payment System
+    RAZORPAY_KEY_ID: str = os.getenv("RAZORPAY_KEY_ID", "rzp_test_CYVANTIS2026")
+    RAZORPAY_KEY_SECRET: str = os.getenv("RAZORPAY_KEY_SECRET", "mock_sec_cyvantis_razorpay")
+    DEFAULT_UPI_ID: str = os.getenv("DEFAULT_UPI_ID", "cyvantis.pay@upi")
+    DEFAULT_UPI_NAME: str = os.getenv("DEFAULT_UPI_NAME", "CYVANTIS Cybersecurity")
+    RECEIPTS_DIR: str = os.getenv("RECEIPTS_DIR", "./data/receipts")
+    SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
+    SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "")
+
     model_config = SettingsConfigDict(case_sensitive=True, env_file=".env", extra="allow")
 
     def get_cors_origins(self) -> List[str]:

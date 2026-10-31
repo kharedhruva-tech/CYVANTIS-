@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Activity, Search, BarChart3, ShieldAlert, Globe,
   Briefcase, Zap, Database, FileText, Server, HardDrive, Cpu,
   FileCode2, Users, Settings, ChevronRight, ChevronLeft, ChevronDown,
-  Lock, Terminal, Wrench, Radio, Brain, ShieldCheck, Sparkles, LogOut, User as UserIcon
+  Lock, Terminal, Wrench, Radio, Brain, ShieldCheck, Sparkles, LogOut, User as UserIcon, CreditCard
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -49,6 +49,9 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'audit-logs', label: '14. Audit Logs', shortLabel: 'Audit Logs', icon: FileCode2, group: 'Platform' },
   { id: 'users', label: '15. User Management', shortLabel: 'Users', icon: Users, group: 'Platform', adminOnly: true },
   { id: 'settings', label: '16. Settings', shortLabel: 'Settings', icon: Settings, group: 'Platform', adminOnly: true },
+  { id: 'membership', label: '17. Membership & Plans', shortLabel: '💎 Membership', icon: Sparkles, group: 'Platform' },
+  { id: 'my-subscription', label: '18. My Subscription', shortLabel: '📜 Subscription', icon: FileText, group: 'Platform' },
+  { id: 'admin-memberships', label: '19. Member & Payment Desk', shortLabel: '💳 Payments Desk', icon: CreditCard, group: 'Platform', adminOnly: true },
 
   // Advanced Operations
   { id: 'tools-hub', label: 'Tools Hub', shortLabel: 'Tools Hub', icon: Wrench, group: 'Advanced Operations' },
