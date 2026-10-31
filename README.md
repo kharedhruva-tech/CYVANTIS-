@@ -27,18 +27,15 @@
 | **Interactive API Documentation** | Swagger / OpenAPI | **[https://cyvantis.onrender.com/api/v1/docs](https://cyvantis.onrender.com/api/v1/docs)** | 🟢 Operational |
 | **Live Honeypot Stream** | Secure WebSocket | `wss://cyvantis.onrender.com/api/v1/ws/events` | 🟢 Telemetry Active |
 
-### 🔑 Access & Roles
+### 🔑 Pre-Configured Access Credentials
 
-Login credentials are **not published in this repository**. Request demo access from the maintainer, or set your own accounts when self-hosting.
+| Role | Username | Password | Capabilities |
+| :--- | :--- | :--- | :--- |
+| **Chief SOC Administrator** | `admin` | `Admin@Cyvantis2026!` | Full platform authority, credential decryption, user admin, rule mutation & database backups |
+| **Tier-2 SOC Analyst** | `analyst` | `Analyst@Cyvantis2026!` | Event investigation, threat intelligence queries, alert triage, incident timeline notes |
+| **Executive Viewer** | `viewer` | `Viewer@Cyvantis2026!` | Read-only telemetry monitoring, metric reports & executive dashboard exports |
 
-| Role | Capabilities |
-| :--- | :--- |
-| **Chief SOC Administrator** | Full platform authority, credential decryption, user admin, rule mutation & database backups |
-| **Tier-2 SOC Analyst** | Event investigation, threat intelligence queries, alert triage, incident timeline notes |
-| **Executive Viewer** | Read-only telemetry monitoring, metric reports & executive dashboard exports |
-
-> *Note: Passwords require an immediate policy update on first-time login, and brute-force protection locks accounts for 15 minutes after 5 failed attempts.*
-
+> *Tip: The live login page at [https://cyvantis-frontend.onrender.com/login](https://cyvantis-frontend.onrender.com/login) comes pre-filled with the `admin` credentials. You can click the Eye icon (👁️) in the password box to reveal it.*
 ---
 
 ## 🏛️ System Architecture
