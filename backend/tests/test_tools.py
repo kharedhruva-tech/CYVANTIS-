@@ -1,13 +1,14 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+from app.config import settings
 
 client = TestClient(app)
 
 def get_admin_token():
     response = client.post(
         "/api/v1/auth/login",
-        data={"username": "admin", "password": "Admin@Cyvantis2026!"}
+        data={"username": "admin", "password": settings.ADMIN_DEFAULT_PASSWORD}
     )
     assert response.status_code == 200
     return response.json()["access_token"]

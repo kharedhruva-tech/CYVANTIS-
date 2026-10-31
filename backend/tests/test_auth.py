@@ -1,5 +1,7 @@
+from app.config import settings
+
 def test_login_success(client):
-    response = client.post("/api/v1/auth/login", data={"username": "admin", "password": "Admin@Cyvantis2026!"})
+    response = client.post("/api/v1/auth/login", data={"username": "admin", "password": settings.ADMIN_DEFAULT_PASSWORD})
     assert response.status_code == 200
     data = response.json()
     assert "access_token" in data
@@ -11,7 +13,7 @@ def test_login_failure(client):
     assert response.status_code == 401
 
 def test_get_me(client):
-    login_res = client.post("/api/v1/auth/login", data={"username": "analyst", "password": "Analyst@Cyvantis2026!"})
+    login_res = client.post("/api/v1/auth/login", data={"username": "analyst", "password": settings.ANALYST_DEFAULT_PASSWORD})
     token = login_res.json()["access_token"]
     
     res = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
@@ -20,7 +22,7 @@ def test_get_me(client):
     assert res.json()["role"] == "analyst"
 
 def test_first_login_password_change(client):
-    login_res = client.post("/api/v1/auth/login", data={"username": "viewer", "password": "Viewer@Cyvantis2026!"})
+    login_res = client.post("/api/v1/auth/login", data={"username": "viewer", "password": settings.VIEWER_DEFAULT_PASSWORD})
     token = login_res.json()["access_token"]
     
     # Attempt with wrong current password -> 400
@@ -35,14 +37,14 @@ def test_first_login_password_change(client):
     success_res = client.post(
         "/api/v1/auth/change-password-first-login",
         headers={"Authorization": f"Bearer {token}"},
-        json={"current_password": "Viewer@Cyvantis2026!", "new_password": "NewSecureViewerPass2026!"}
+        json={"current_password": settings.VIEWER_DEFAULT_PASSWORD, "new_password": "NewSecureViewerPass2026!"}
     )
     assert success_res.status_code == 200
     assert success_res.json()["must_change_password"] is False
 
 def test_2fa_setup_and_enable(client):
     import pyotp
-    login_res = client.post("/api/v1/auth/login", data={"username": "analyst", "password": "Analyst@Cyvantis2026!"})
+    login_res = client.post("/api/v1/auth/login", data={"username": "analyst", "password": settings.ANALYST_DEFAULT_PASSWORD})
     token = login_res.json()["access_token"]
     
     # 1. Setup 2FA

@@ -8,7 +8,8 @@ from app.models import (
     DetectionRule, ThreatIntelIOC, AuditLog, PlatformSetting, BackupRecord,
     MembershipPlan, UpiConfig, Membership, UserProfile
 )
-from app.security import get_password_hash
+from app.security import get_password_hash, verify_password
+from app.config import settings
 from app.geoip_service import enrich_ip
 
 SAMPLE_IPS = [
@@ -45,44 +46,69 @@ EVENT_TYPES = [
 ]
 
 def seed_database(db: Session):
-    # 1. Seed Users if not present
-    if not db.query(User).filter(User.username == "admin").first():
-        admin = User(
+    # 1. Seed Users or Rotate Compromised Credentials
+    admin_user = db.query(User).filter(User.username == "admin").first()
+    if not admin_user:
+        admin_user = User(
             username="admin",
             email="admin@cyvantis.soc",
-            hashed_password=get_password_hash("Admin@Cyvantis2026!"),
+            hashed_password=get_password_hash(settings.ADMIN_DEFAULT_PASSWORD),
             full_name="SOC Chief Administrator",
             role="admin",
             is_active=True,
             must_change_password=False,
             created_at=datetime.datetime.utcnow() - datetime.timedelta(days=30)
         )
-        analyst = User(
+        db.add(admin_user)
+    elif verify_password("Admin@Cyvantis2026!", admin_user.hashed_password):
+        # Auto-rotate old compromised default password
+        admin_user.hashed_password = get_password_hash(settings.ADMIN_DEFAULT_PASSWORD)
+        admin_user.must_change_password = False
+        db.add(admin_user)
+
+    analyst_user = db.query(User).filter(User.username == "analyst").first()
+    if not analyst_user:
+        analyst_user = User(
             username="analyst",
             email="analyst@cyvantis.soc",
-            hashed_password=get_password_hash("Analyst@Cyvantis2026!"),
+            hashed_password=get_password_hash(settings.ANALYST_DEFAULT_PASSWORD),
             full_name="Lead Cyber Threat Analyst",
             role="analyst",
             is_active=True,
             must_change_password=False,
             created_at=datetime.datetime.utcnow() - datetime.timedelta(days=20)
         )
-        viewer = User(
+        db.add(analyst_user)
+    elif verify_password("Analyst@Cyvantis2026!", analyst_user.hashed_password):
+        # Auto-rotate old compromised default password
+        analyst_user.hashed_password = get_password_hash(settings.ANALYST_DEFAULT_PASSWORD)
+        analyst_user.must_change_password = False
+        db.add(analyst_user)
+
+    viewer_user = db.query(User).filter(User.username == "viewer").first()
+    if not viewer_user:
+        viewer_user = User(
             username="viewer",
             email="viewer@cyvantis.soc",
-            hashed_password=get_password_hash("Viewer@Cyvantis2026!"),
+            hashed_password=get_password_hash(settings.VIEWER_DEFAULT_PASSWORD),
             full_name="Audit Observer",
             role="viewer",
             is_active=True,
             must_change_password=False,
             created_at=datetime.datetime.utcnow() - datetime.timedelta(days=10)
         )
-        db.add_all([admin, analyst, viewer])
-        try:
-            db.commit()
-            print("[+] Users seeded successfully.")
-        except Exception:
-            db.rollback()
+        db.add(viewer_user)
+    elif verify_password("Viewer@Cyvantis2026!", viewer_user.hashed_password):
+        # Auto-rotate old compromised default password
+        viewer_user.hashed_password = get_password_hash(settings.VIEWER_DEFAULT_PASSWORD)
+        viewer_user.must_change_password = False
+        db.add(viewer_user)
+
+    try:
+        db.commit()
+        print("[+] Users seeded and verified successfully.")
+    except Exception:
+        db.rollback()
 
     admin_user = db.query(User).filter(User.username == "admin").first()
     analyst_user = db.query(User).filter(User.username == "analyst").first()

@@ -1,5 +1,7 @@
+from app.config import settings
+
 def test_trigger_backup(client):
-    login_res = client.post("/api/v1/auth/login", data={"username": "admin", "password": "Admin@Cyvantis2026!"})
+    login_res = client.post("/api/v1/auth/login", data={"username": "admin", "password": settings.ADMIN_DEFAULT_PASSWORD})
     token = login_res.json()["access_token"]
     
     res = client.post("/api/v1/storage/backups", headers={"Authorization": f"Bearer {token}"})
@@ -9,7 +11,7 @@ def test_trigger_backup(client):
     assert "cyvantis_backup" in data["filename"]
 
 def test_storage_status(client):
-    login_res = client.post("/api/v1/auth/login", data={"username": "admin", "password": "Admin@Cyvantis2026!"})
+    login_res = client.post("/api/v1/auth/login", data={"username": "admin", "password": settings.ADMIN_DEFAULT_PASSWORD})
     token = login_res.json()["access_token"]
 
     res = client.get("/api/v1/storage/status", headers={"Authorization": f"Bearer {token}"})

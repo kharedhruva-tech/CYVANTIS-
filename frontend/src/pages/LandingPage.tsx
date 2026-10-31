@@ -95,12 +95,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
     const entered = adminPasswordInput.trim();
     let verified = false;
 
-    // 1. Direct validation against known admin master password
-    if (entered === 'Admin@Cyvantis2026!') {
-      verified = true;
-    } else {
-      // 2. Validate against backend auth endpoint
-      try {
+    // Validate strictly against backend auth endpoint
+    try {
         const formData = new URLSearchParams();
         formData.append('username', 'admin');
         formData.append('password', entered);
@@ -122,7 +118,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
       } catch {
         // Fallback
       }
-    }
 
     setIsVerifyingAdmin(false);
 

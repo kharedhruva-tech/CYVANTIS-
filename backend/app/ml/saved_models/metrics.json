@@ -1,22 +1,22 @@
 {
   "status": "TRAINED",
   "model_version": "v2.1.0",
-  "timestamp": "2026-10-31T12:11:33.051484",
+  "timestamp": "2026-10-31T12:29:17.200271",
   "dataset_source": "CYVANTIS Live Honeypot Telemetry",
   "total_samples": 233,
   "train_samples": 163,
   "val_samples": 35,
   "test_samples": 35,
   "classes_distribution": {
-    "low": 111,
-    "high": 67,
-    "medium": 39,
-    "critical": 16
+    "low": 118,
+    "high": 56,
+    "medium": 42,
+    "critical": 17
   },
   "accuracy": 0.6571,
-  "precision": 0.6768,
+  "precision": 0.6449,
   "recall": 0.6571,
-  "f1_score": 0.6641,
+  "f1_score": 0.65,
   "confusion_matrix": {
     "labels": [
       "critical",
@@ -26,84 +26,84 @@
     ],
     "matrix": [
       [
-        1,
+        3,
         0,
-        1,
+        0,
         0
       ],
       [
         0,
-        6,
+        2,
         4,
-        0
+        2
       ],
       [
-        1,
+        0,
         5,
-        11,
+        13,
         0
       ],
       [
         0,
-        1,
         0,
+        1,
         5
       ]
     ]
   },
   "classification_report": {
     "critical": {
-      "precision": 0.5,
-      "recall": 0.5,
-      "f1-score": 0.5,
-      "support": 2.0
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 3.0
     },
     "high": {
-      "precision": 0.5,
-      "recall": 0.6,
-      "f1-score": 0.5454545454545454,
-      "support": 10.0
+      "precision": 0.2857142857142857,
+      "recall": 0.25,
+      "f1-score": 0.26666666666666666,
+      "support": 8.0
     },
     "low": {
-      "precision": 0.6875,
-      "recall": 0.6470588235294118,
-      "f1-score": 0.6666666666666666,
-      "support": 17.0
+      "precision": 0.7222222222222222,
+      "recall": 0.7222222222222222,
+      "f1-score": 0.7222222222222222,
+      "support": 18.0
     },
     "medium": {
-      "precision": 1.0,
+      "precision": 0.7142857142857143,
       "recall": 0.8333333333333334,
-      "f1-score": 0.9090909090909091,
+      "f1-score": 0.7692307692307693,
       "support": 6.0
     },
     "accuracy": 0.6571428571428571,
     "macro avg": {
-      "precision": 0.671875,
-      "recall": 0.6450980392156863,
-      "f1-score": 0.6553030303030303,
+      "precision": 0.6805555555555556,
+      "recall": 0.701388888888889,
+      "f1-score": 0.6895299145299145,
       "support": 35.0
     },
     "weighted avg": {
-      "precision": 0.6767857142857143,
+      "precision": 0.6448979591836734,
       "recall": 0.6571428571428571,
-      "f1-score": 0.6640692640692639,
+      "f1-score": 0.64996336996337,
       "support": 35.0
     }
   },
-  "anomaly_detected_count": 4,
-  "anomaly_percentage": 11.43,
+  "anomaly_detected_count": 2,
+  "anomaly_percentage": 5.71,
   "feature_importances": {
-    "pass_len": 0.2477,
-    "cmd_len": 0.2095,
-    "duration": 0.1712,
-    "has_recon": 0.1196,
-    "user_len": 0.0944,
-    "has_execution": 0.0466,
-    "protocol_ssh": 0.0261,
-    "has_wget_curl": 0.0261,
-    "dst_port": 0.0235,
-    "is_root_user": 0.0196,
-    "protocol_telnet": 0.0156,
+    "pass_len": 0.2975,
+    "cmd_len": 0.2235,
+    "duration": 0.175,
+    "has_recon": 0.0852,
+    "user_len": 0.0739,
+    "has_execution": 0.048,
+    "has_wget_curl": 0.0392,
+    "protocol_ssh": 0.0188,
+    "dst_port": 0.0145,
+    "is_root_user": 0.0128,
+    "protocol_telnet": 0.0116,
     "has_base64": 0.0
   },
   "saved_artifacts": {

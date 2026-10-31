@@ -27,15 +27,15 @@
 | **Interactive API Documentation** | Swagger / OpenAPI | **[https://cyvantis.onrender.com/api/v1/docs](https://cyvantis.onrender.com/api/v1/docs)** | 🟢 Operational |
 | **Live Honeypot Stream** | Secure WebSocket | `wss://cyvantis.onrender.com/api/v1/ws/events` | 🟢 Telemetry Active |
 
-### 🔑 Pre-Configured Access Credentials
+### 🛡️ Role-Based Access Control (RBAC) Architecture
 
-| Role | Username | Password | Capabilities |
+| Role | Default Username | Access Control & Capabilities | Password Configuration |
 | :--- | :--- | :--- | :--- |
-| **Chief SOC Administrator** | `admin` | `Admin@Cyvantis2026!` | Full platform authority, credential decryption, user admin, rule mutation & database backups |
-| **Tier-2 SOC Analyst** | `analyst` | `Analyst@Cyvantis2026!` | Event investigation, threat intelligence queries, alert triage, incident timeline notes |
-| **Executive Viewer** | `viewer` | `Viewer@Cyvantis2026!` | Read-only telemetry monitoring, metric reports & executive dashboard exports |
+| **Chief SOC Administrator** | `admin` | Full platform authority, credential decryption, user administration, rule mutation, backups, and payment approvals | Set via `ADMIN_DEFAULT_PASSWORD` environment variable |
+| **Tier-2 SOC Analyst** | `analyst` | Event investigation, threat intelligence queries, alert triage, incident timeline notes | Set via `ANALYST_DEFAULT_PASSWORD` or register self-service account |
+| **Executive Viewer** | `viewer` | Read-only telemetry monitoring, metric reports & executive dashboard exports | Set via `VIEWER_DEFAULT_PASSWORD` environment variable |
 
-> *Tip: The live login page at [https://cyvantis-frontend.onrender.com/login](https://cyvantis-frontend.onrender.com/login) comes pre-filled with the `admin` credentials. You can click the Eye icon (👁️) in the password box to reveal it.*
+> 🔒 **Security Notice**: In accordance with enterprise security baselines and OWASP guidelines, passwords are never published in public documentation. Deployments must supply custom, rotated credentials through secure environment variables (`ADMIN_DEFAULT_PASSWORD`, `SECRET_KEY`). Platform users can register an Analyst account directly via the **Register Account** tab at [https://cyvantis-frontend.onrender.com/login](https://cyvantis-frontend.onrender.com/login).
 ---
 
 ## 🏛️ System Architecture

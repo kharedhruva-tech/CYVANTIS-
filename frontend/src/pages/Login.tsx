@@ -18,7 +18,7 @@ export const Login: React.FC<LoginProps> = ({ onBackToLanding }) => {
 
   // Login form state
   const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('Admin@Cyvantis2026!');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -189,10 +189,10 @@ export const Login: React.FC<LoginProps> = ({ onBackToLanding }) => {
     }
   };
 
-  const setDemoUser = (user: string, pass: string) => {
+  const setDemoUser = (user: string) => {
     setAuthMode('login');
     setUsername(user);
-    setPassword(pass);
+    setPassword('');
   };
 
   return (
@@ -528,28 +528,28 @@ export const Login: React.FC<LoginProps> = ({ onBackToLanding }) => {
           </button>
         </div>
 
-        {/* Demo Preset Quick-Fill Buttons */}
+        {/* Role Selection Quick-Fill */}
         <div className="mt-5 pt-4 border-t border-[#243149] text-center">
           <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-2 font-mono flex items-center justify-center gap-1.5">
             <KeyRound className="w-3.5 h-3.5 text-[#38BDF8]" />
-            Quick Demo Presets
+            Select Account Role
           </p>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => setDemoUser('admin', 'Admin@Cyvantis2026!')}
+              onClick={() => setDemoUser('admin')}
               className="px-3 py-2 rounded-lg bg-[#111C32] hover:bg-[#243149] text-xs font-mono text-[#E8EEF8] border border-[#243149] hover:border-[#38BDF8]/50 transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <Cpu className="w-3.5 h-3.5 text-[#38BDF8]" />
-              <span>Admin (Full Access)</span>
+              <span>Admin Account</span>
             </button>
             <button
               type="button"
-              onClick={() => setDemoUser('analyst', 'Analyst@Cyvantis2026!')}
+              onClick={() => setDemoUser('analyst')}
               className="px-3 py-2 rounded-lg bg-[#111C32] hover:bg-[#243149] text-xs font-mono text-[#E8EEF8] border border-[#243149] hover:border-[#818CF8]/50 transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <Radio className="w-3.5 h-3.5 text-[#818CF8]" />
-              <span>Analyst (Locked Settings)</span>
+              <span>Analyst Account</span>
             </button>
           </div>
         </div>

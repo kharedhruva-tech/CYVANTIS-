@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     ACCOUNT_LOCKOUT_MINUTES: int = 15
     CREDENTIAL_REDACTION_ENABLED: bool = True
 
+    # Rotated Default Administrative Credentials (Configurable via Environment Variables)
+    ADMIN_DEFAULT_PASSWORD: str = os.getenv("ADMIN_DEFAULT_PASSWORD", "Cyv@ntis#Adm!n$Sec9821")
+    ANALYST_DEFAULT_PASSWORD: str = os.getenv("ANALYST_DEFAULT_PASSWORD", "Cyv@ntis#An@lyst$Sec5614")
+    VIEWER_DEFAULT_PASSWORD: str = os.getenv("VIEWER_DEFAULT_PASSWORD", "Cyv@ntis#V!ew$Sec2390")
+
     # CORS
     CORS_ORIGINS: str = os.getenv(
         "CORS_ORIGINS",

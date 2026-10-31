@@ -5,10 +5,13 @@ from app.main import app
 from app.database import SessionLocal
 from app.models import User
 from app.security import get_password_hash
+from app.config import settings
 
 client = TestClient(app)
 
-def get_auth_token(username: str, password: str = "Admin@Cyvantis2026!") -> str:
+def get_auth_token(username: str, password: str = None) -> str:
+    if password is None:
+        password = settings.ADMIN_DEFAULT_PASSWORD
     db = SessionLocal()
     try:
         user = db.query(User).filter(User.username == username).first()

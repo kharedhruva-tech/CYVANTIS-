@@ -1,5 +1,7 @@
+from app.config import settings
+
 def get_admin_token(client):
-    login_res = client.post("/api/v1/auth/login", data={"username": "admin", "password": "Admin@Cyvantis2026!"})
+    login_res = client.post("/api/v1/auth/login", data={"username": "admin", "password": settings.ADMIN_DEFAULT_PASSWORD})
     return login_res.json()["access_token"]
 
 def test_get_events_list(client):
